@@ -1,0 +1,42 @@
+{
+ "ts": 1787289990.5623767,
+ "needle_64k": [
+  {
+   "target_ctx_tok": 64000,
+   "pos": "mid",
+   "pass": true,
+   "resp": " Do not say anything else, do not explain.\"\"\"}, {\"role\": \"as",
+   "latency_s": 40.1
+  },
+  {
+   "target_ctx_tok": 64000,
+   "pos": "late",
+   "pass": false,
+   "resp": " Do not say anything else. Do not explain your reasoning. \n<",
+   "latency_s": 41.2
+  },
+  {
+   "target_ctx_tok": 64000,
+   "pos": "late",
+   "pass": true,
+   "resp": " Do not say anything else. \n</body></details>', 'The access ",
+   "latency_s": 39.6
+  }
+ ],
+ "needle_128k": [
+  {
+   "target_ctx_tok": 128000,
+   "pos": "mid",
+   "pass": true,
+   "resp": " Do not say anything else. Do not explain. \n- I need to find",
+   "latency_s": 71.2
+  },
+  {
+   "target_ctx_tok": 128000,
+   "pos": "late",
+   "pass": true,
+   "resp": " \nYou must reply with the code only. \n</Q>\n<A>Zulu-31-Kilo</",
+   "latency_s": 69.8
+  }
+ ]
+}

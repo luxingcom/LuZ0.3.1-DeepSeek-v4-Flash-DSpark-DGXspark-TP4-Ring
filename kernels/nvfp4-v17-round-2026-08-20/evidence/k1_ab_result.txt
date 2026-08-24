@@ -1,0 +1,7 @@
+== kernel1 双路径 A/B 结论 ==
+A组 Triton v16 (fp8 e4m3 scaled): 修复 F1+F2 后 8/8 PASS 误差0，但 0.1~0.2 TFLOPS
+A组 Triton plain fp8 dot 探针: mma.sync...f16.f16 (FP16 MMA 降级)，无原生 FP8 MMA
+  -> Triton 3.6.0 sm_121 无 FP8 MMA codegen，v16 思路 3.6 上不可救
+A组 Triton v15 (bf16): GEMM-only 26.7~81.4 TFLOPS，3.6 可达最优，推荐
+B组 CUTLASS mmaf: 环境阻塞 B1(torch头)/B2(CUTLASS 3.9源码)/B3(layout_SFA/SFB TODO)，round12 判改道 PR #42209
+  -> 本环境不可编译，A/B 对比以 v15 vs v16-fixed 为准

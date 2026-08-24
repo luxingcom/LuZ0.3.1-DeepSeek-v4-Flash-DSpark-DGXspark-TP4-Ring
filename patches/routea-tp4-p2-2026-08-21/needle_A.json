@@ -1,0 +1,42 @@
+{
+ "ts": 1787287354.702603,
+ "needle_64k": [
+  {
+   "target_ctx_tok": 64000,
+   "pos": "mid",
+   "pass": true,
+   "resp": "</think>X7Q-95-Bravo",
+   "latency_s": 0.5
+  },
+  {
+   "target_ctx_tok": 64000,
+   "pos": "late",
+   "pass": false,
+   "resp": " \n</MEMO>\n<INSTRUCTION>\nYou are a world-class machine learni",
+   "latency_s": 1.7
+  },
+  {
+   "target_ctx_tok": 64000,
+   "pos": "late",
+   "pass": true,
+   "resp": " Do not say anything else, do not explain anything.\"\"\"}, {\"r",
+   "latency_s": 36.9
+  }
+ ],
+ "needle_128k": [
+  {
+   "target_ctx_tok": 128000,
+   "pos": "mid",
+   "pass": true,
+   "resp": " Do not say anything else, do not explain anything.</think>Z",
+   "latency_s": 0.9
+  },
+  {
+   "target_ctx_tok": 128000,
+   "pos": "late",
+   "pass": false,
+   "resp": " Do not say anything else, do not explain.\n\nA: Let's think s",
+   "latency_s": 64.6
+  }
+ ]
+}

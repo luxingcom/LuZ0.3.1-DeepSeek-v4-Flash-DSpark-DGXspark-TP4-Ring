@@ -1,0 +1,8 @@
+== kernel2 v17 验证合格（可替换）==
+pytest 8/8 逐字节（shipped test）
+带宽大 T 194~262 GB/s（3.5~4.6x v11，达标>=120）
+极端边界实测：zeros/pos0/neg0/1e6/1e30/1e-30/6.0 与 torch ref 全部 byte_equal=True
+  （scale 实测：zero=24, 1e6=144, 1e30=224, 6.0=127 —— 与 torch 全一致）
+安全套件 3 失败 = 测试脚本缺陷：①saturation 期望255实为144 ②sign_zero 期望1实为24 ③boundary_T 未seed比两次不同randn
+确定性/内存/NaN 4 项通过
+消费端：v17 信封(584B E8M0) 面向 vLLM PR#46329 reader；与 FlashInfer nvfp4_kv_quantize(e4m3 scale) 语义不同不字节兼容（预期）

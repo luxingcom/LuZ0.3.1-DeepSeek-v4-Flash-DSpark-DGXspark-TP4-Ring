@@ -1,0 +1,50 @@
+NCCL 2.30.7 ring-only v5 (ring-order forcing) staging record
+date: 2026-08-22/23 (UTC)
+source: <INSTALL_DIR>/backup/nccl-official-2307-hardened-20260816 (git clone)
+branch: nccl-2307-v5
+git: 3c8f449 (v5+v1b) on top of 0dd44cd (stageB hardened, production chain)
+staged at: /tmp/_ringopt/v5/ on node01/02/04/03 (STAGING ONLY, production untouched)
+
+build env: <NODE_IP>:5000/anemll/dspark-vllm-gx10:0.2.1-v026.0-b12x-recovered-20260820
+            (CPU-only container --rm, no GPU used; same image family as production)
+build cmd: rm -rf build && make -j src.build CUDA_HOME=/usr/local/cuda
+            NVCC_GENCODE=-gencode=arch=compute_121,code=sm_121
+build log: /tmp/nccl-v5-src/build.log
+
+lib md5:
+  v5 (this build)     build/lib/libnccl.so.2.30.7 = 2b8669eceebd633120cd8053a5be3089
+  production (ref)    /opt/nccl-ringonly/libnccl.so.2.30.7 = 2be94172c1172734d00dee9ff7d788bd
+
+verification status (CPU-container checks; functional W1 gate pending window):
+  GLIBC_MAX = 2.34 (constraint <=2.34)                              PASS
+  ncclGetVersion symbol present                                      PASS
+  dynamic symbol NAME set identical to production lib (comm diff=0)  PASS
+  "RING-ONLY v5" log string present in binary                        PASS
+  LD_PRELOAD into python process (import only)                       PASS
+  ctypes CDLL load in GPU-less container segfaults (exit 139) --
+    ENVIRONMENTAL, reproduced identically with PRODUCTION lib (control), not v5-specific
+
+changes vs production (2be94172) -- v5-incremental.patch (65 lines):
+  1. src/graph/connect.cc ncclTopoPostset(): after allTopoRanks gather, before
+     connectRings(): force ALL channels' ringPrev/ringNext (all ranks) and
+     ringRecv/ringSend (node level) to node/rank order == physical ring
+     0-1-2-3-0 (01-02-04-03). Neutralizes rail alternation (crossNicRing==2
+     c/c^1 swap) and non-physical multi-ring search orders at >4 channels.
+     Gated: nNodes==4 && nRanks==4. NCCL_RINGONLY_V5=0 disables (A/B arm).
+     INFO log line per rank/channel: "RING-ONLY v5 rank %d chan %d forced
+     ring prev %d next %d" (only under NCCL_DEBUG=INFO).
+  2. src/transport.cc ncclTransportP2pConnect(): v1b -- when nNodes==4 &&
+     nRanks==4, inter-node peer filter uses hardcoded physical adjacency
+     ((rank+3)%4 / (rank+1)%4) instead of channel ring order.
+
+full chain vs vanilla 2.30.7 (73cf112): v5-full-chain.patch (3803 lines)
+  = v1b + v4-netdev-hardcode + stageB-tuner + stageB-hardened + v5
+
+test artifacts (this dir):
+  ringopt_scan_v5.py   scan to 128MB + RINGOPT_SIZES + CHECK correctness gate
+  ringopt_node_v5.sh   per-node runner, LD_PRELOAD=/v5lib/libnccl.so.2.30.7 (staged copy)
+  run4_v5.sh           four-node launcher
+  w1_matrix.sh         W1 window matrix + judgement criteria J1-J5
+  deploy_v5.sh         (node01 only) idempotent 4-node staging
+
+rollback: nothing to roll back -- production /opt/nccl-ringonly and configs untouched.

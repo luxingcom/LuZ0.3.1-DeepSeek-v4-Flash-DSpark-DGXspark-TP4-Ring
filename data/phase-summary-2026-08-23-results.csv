@@ -1,0 +1,36 @@
+﻿报告,日期,主题,核心结论,关键数据,状态
+threshold-retest-2026-08-22.md,2026-08-22,W4A4翻案与采纳,昨日-22.5%系重启级模式方差混杂；2048三对交错3/3正向；4096探路显著正向,2048合并4K+6.4%/16K+11.1%；4096两臂2849/2851(+12%)零慢轮,✅完成
+threshold-4096-adoption-2026-08-22.md,2026-08-22,W4A4翻案与采纳,threshold4096生产采纳成功四机固化,PR四档+13.5%/+13.2%/+12.6%/+8.5%；DE归一无回退,✅完成
+ws-dedup-patch-2026-08-22/ws-dedup-patch-2026-08-22.md,2026-08-22,W4A4翻案与采纳,b12x wrapper几何键共享池补丁L1 24/24+L2 GPU 16/16全过,每wrapper workspace 455MiB；43层去重预期省13-27GB,✅完成
+wsdedup-l3-combo-2026-08-23.md,2026-08-23,W4A4翻案与采纳,W4A4翻案成立P2的-13%系threshold1024时代形态误差,weight 68.15→45.32GiB(省22.83)；PR4K2982(+8.3%)；KV-51%→-8.5%,✅完成
+w4a4-ext-2026-08-23.md,2026-08-23,W4A4翻案与采纳,W4A4并发增益成立且大于单流；threshold8192干净否决,并发C6+11.5%/C12+13.0%；单流4K+8.1%；8192 KV3.48M跌破底线,✅完成
+a3-hybrid-slim-design-2026-08-23.md,2026-08-23,b' native共享路线,旧结论payload共享不可行被源码推翻；b' native共享路线设计就绪,hybrid weight79.82→~45.3GiB；KV1.53M→~5.48M；工作量2-4天,✅完成
+bprime-impl-2026-08-23/,2026-08-23,b' native共享路线,b'三处规格改动+两处勘察新增实现L1全绿,native主GEMM M=8/64与packed逐位相等(max_rel=0.0)；新发现e8m0×micro缺陷,✅完成
+bprime-window-2026-08-23.md,2026-08-23,b' native共享路线,N1门FAIL→b' No-Go；内存收益兑现但native staging否决decode,内存门过45.32GiB/5.54M；DEC1-25%/C12-34%；mid-M曲线1.61×~1.14×,⛔No-Go
+luz031-deployment-2026-08-23.md,2026-08-23,LuZ0.3.1生产落地,LuZ0.3.1(=B2+util0.82)采纳成立生产全绿；发现并修复FI0.6.16误回滚,PR+6.6~+15.1%；并发C6+11.4%/C12+11.6%；KV5.73M≥5.7M；补丁6/7；检查点镜像就位,✅完成
+upstream-check-perf-ceiling-2026-08-23.md,2026-08-23,上游核对与性能上限,b12x1.2.6后零提交；FI0.6.17最对症；叙事切换为填满甜点区+削减墙下流量,全池转化PR+5~7%→~3160-3210；现实上限~3250-3350；routeB M=1024下探512-768,✅完成
+slowround-rootcause-2026-08-22.md,2026-08-22,环境stall调查,慢轮根因未定论；H1下修H2升头号；确立steps/s判慢轮口径,14轮0慢轮；C1 tput方差36.6%但steps/s恒定,🔄在途
+expd-r123-2026-08-23.md,2026-08-23,环境stall调查,实验D复现模式方差+R1-R3卫生修复全落地；H2实锤但非主因,7次抽签慢×4/中×3快×0；稳态PR差~3.4%；H2漏网4/7重启,✅完成
+ringonly-w1-2026-08-23.md,2026-08-23,环境stall调查,v5 No-Go+★P0新发现环境级随机AR stall,4ch21.57/8ch21.12/16ch13.01通道数无带宽收益；stall17-20ms/AR 1ms量子化,⛔No-Go
+envstall-rootcause-2026-08-23.md,2026-08-23,环境stall调查,GDR=0实锤；RC1头号候选=proxy睡眠轮询抽签；生产稳态未中招,stall期proxy核~0.9-1.3kHz arch_timer；生产expD R1-R7全带内,🔄在途
+expverdict-verdict-2026-08-23.md,2026-08-23,环境stall调查,环境stall最终判决=单节点worker单核约束(CPU8/9)12/12相关；RC1字面修正；实验C排除channel映射,stall率6/10(med17.99-21.18ms)；E3挂起待处理,✅完成
+e4-kv-footprint-2026-08-23.md,2026-08-23,E4 KV足迹,+58%/token系指标语义误读；物理per-token不变~9.4KiB；真实机制=每请求KV预留随批大小上涨,满长并发9.16→5.80(-36.7%)；8192否决理由修订,✅完成
+fi017-p0-accounting-2026-08-23.md,2026-08-23,FI0.6.17评估+P0拆账,U1(FI0.6.17)Go有条件；P0拆账推算三节点份额；P1顺序shared→lm_head→attn,P0拆账attn15-19/shared9-12/lm_head3-5µs·token^-1；lm_head唯一打decode带宽墙,✅完成
+engineering-assets-report-2026-08-22.md,2026-08-22,其他,管理层资产汇编五大类+九项负结果,kernel×5/集成机制6+4/数据×6/方法论×5/负结果×9,✅完成
+large-batch-analysis-2026-08-22.md,2026-08-22,其他,层1失败根因=调度器钳制threshold=1024；batched不改M,C12-9.8%不可归因8240；KV账5.78KB/token；batch上限4096+8264,✅完成
+pr-de-bottleneck-analysis-2026-08-22.md,2026-08-22,其他,Roofline瀑布+三大缺口；档位标签口径修正,PR 407ms/步MoE45-50%+AR31%+attn10-21%；4K实为8.2K tokens,✅完成
+p1-p2-research-2026-08-22.md,2026-08-22,其他,四项研究threshold混杂/workspace去重口径/FI0.6.16/attention b12x化,镜像0.6.15混合体41/64文件与0.6.16逐字节同；b12x树未被补丁,✅完成
+ar-optimization-2026-08-22.md,2026-08-22,其他,AR四路线全No-Go/已达物理最优+占比校准,fp8 AR端到端2.6×；AR占比校准12.9%非31%；busbw 21.4GB/s,⛔No-Go
+mtp-tuning-2026-08-22.md,2026-08-22,其他,MTP调优线关闭n=7已最优；acc_len大杠杆被修正,n=10 C12-25%；n=5 C1-8.5%；自适应n全面负,⛔No-Go
+routing-recapture-scheduler-ab-2026-08-22.md,2026-08-22,其他,真实路由重采集+threshold2048初判(后被翻案)；合成语料失真双反,等样本hash≥1024 58.9%→16.1%；口径3单步hash≥64=17.9%,⛔No-Go
+upstream-tracking-2026-08-22.md,2026-08-22,其他,b12x上游身份确认+三项最优采纳,0.15.3@05-30 vs 1.2.6@08-20落后3个月；①workspace去重②FI0.6.16③Eugr配方,✅完成
+b12x-tail-path-strategy-2026-08-22.md,2026-08-22,其他,B12X 12项形式清单+Triton 4.3×分解+B-lite推荐,Triton重写上限仅50-70%；B-lite KV从悬崖变旋钮,🔄在途
+freetoken-research-2026-08-22.md,2026-08-22,其他,FreeToken机制解析+P0实验：merged有条件复活为跨块MoE聚合,明确不做路由预测；w=4 M_e≥384覆盖68-81%吞吐加权；N-merge永久关闭,✅完成
+fi-rebase-eugr-prep-2026-08-22.md,2026-08-22,其他,rebase工作量下修1-2周→代码1-2天；Eugr备料齐,真fork delta仅5文件+58新增；CPU冒烟22/23,✅完成
+routeb-merged-mainline-2026-08-22.md,2026-08-22,其他,merged-GEMM e2e No-Go：Triton W4A16架构死穴尾部必须B12X,主臂PR-77~-75%；Triton grouped BM=16~3-4%峰值效率,⛔No-Go
+routeb-merged-fix-rerun-2026-08-22.md,2026-08-22,其他,fix-engineer系列收束：探针脚本bug制造架构级阻塞假象数值侧全通,低nibble约定确认3.9e-3；派生链1.8e-4；41.5%系prompt集伪影,✅完成
+ringonly-optimization-plan-2026-08-22.md,2026-08-22,其他,ringonly补丁清单+v5设计+QPS2捷径+窗口清单,生产库=官方2.30.7+4补丁；v5预期busbw 21.4→25-28GB/s PR+2-3%,✅完成
+ringonly-v5-2026-08-23/ringonly-v5-brief-2026-08-23.md,2026-08-23,其他,v5补丁实现+构建成功+W1测试就绪,md5 2b8669ec GLIBC≤2.34 ABI diff=0 四机分发一致,✅完成
+windowA-fi-cg-budget-2026-08-23.md,2026-08-23,其他,短窗A三任务FI冒烟Go/cudagraph=0关闭/budget8192关闭,冒烟5/5；cudagraph=0 -0.84%；8192 KV-36.5% M供给4096见顶,✅完成
+fi016-replacement-2026-08-23.md,2026-08-23,其他,FI0.6.16生产替换三门全过采纳保持,PR四档-1.8~-2.8%带内；质量4/4；needle64K3/3；bind-mount+JIT缓存,✅完成
+eugr-ab-2026-08-23.md,2026-08-23,其他,Eugr attention b12x化No-Go；同权重公平A/B成立,PR+0.4~+4.0%<5%；DEC12-49%；6次启动迭代工程发现留档,⛔No-Go

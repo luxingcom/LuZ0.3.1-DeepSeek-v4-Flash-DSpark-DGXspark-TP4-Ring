@@ -1,0 +1,17 @@
+[1] V1(hybrid 全回落 W4A16) vs V0(基线):
+    prefill logprobs 逐位一致: True | gen 文本一致: True
+
+[2] V2(full W4A4) vs V0(基线):
+    总 logprob: V0=-8384.0 V2=-8377.3 相对差=+0.08% (判据 ≤1%)
+    prefill mean|Δlp|=0.1835 (n=512)
+
+[3] V3(hybrid MIN_M=64) 分派判定（每 prompt prefill）:
+    prompt 0 (M=74): 混合/其他 —— 需检查
+    prompt 1 (M=62): 混合/其他 —— 需检查
+    prompt 2 (M=117): 混合/其他 —— 需检查
+    prompt 3 (M=98): 混合/其他 —— 需检查
+    prompt 4 (M=61): 混合/其他 —— 需检查
+    prompt 5 (M=70): 混合/其他 —— 需检查
+    prompt 6 (M=37): 混合/其他 —— 需检查
+
+== DONE ==

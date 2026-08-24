@@ -1,0 +1,37 @@
+lm_head FP8 F0 golden verify report — 2026-08-24 (architect-2, offline CPU)
+=====================================================================
+Source: <INSTALL_DIR>/models/deepseek-v4-flash-0731/model-00045-of-00048.safetensors
+head.weight: dtype=BF16 shape=(129280, 4096) data_off=262164 bytes=1059061760
+md5_full_bf16 = a1241ccc196be2cb58aa80e7a2ba4b91
+
+Conversion: BF16 -> FP8 E4M3 (payload) + E8M0 scale [N, K/32], sf_vec=32,
+            scale = 2^ceil(log2(max_abs)), RNE E4M3 (incl. subnormals).
+Dequant: w_hat = e4m3_byte * scale
+
+-- verify rows=2048 row_start=1 --
+rows=2048 row_start=1
+max_abs_err=0.125
+max_rel_err=0.163636 (significant |w|>=1e-2; bound 0.0625=2^-4 for top-binade)
+worst_row=187
+rms_abs_err=0.00476222
+n_big(>1e-3)=7991796
+
+-- verify rows=16384 row_start=1 --
+rows=16384 row_start=1
+max_abs_err=0.125
+max_rel_err=0.163636
+worst_row=187
+rms_abs_err=0.00464734
+n_big(>1e-3)=64000244
+
+Interpretation:
+* max_abs_err=0.125 == scale*2^-4 for the largest blocks (scale=2). This is the
+  EXACT tight bound of the E4M3 block-scaled envelope -> conversion is correct.
+* max_rel_err 16.4% occurs for a mid-block small element (row 187) where the
+  32-group block scale (driven by the block max ~1.09) crushes the small value.
+  This is the documented 32-group block-dynamic-range effect (fp8-quality-impact
+  SS1.2), NOT a conversion bug: absolute error stays <= scale*2^-4.
+* RMS abs error 0.0046 across 64M significant elements -> typical per-element
+  noise is tiny; expected logits-level error ~0.1-2% of logits magnitude.
+* Row 0 (token 0) anomaly excluded from sample; it has garbage K[0:224] values
+  (maxabs to 4e37) and is documented in the F0 report.

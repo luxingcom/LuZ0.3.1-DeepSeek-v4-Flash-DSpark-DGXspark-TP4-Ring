@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "tag": "FINAL",
+    "base": "http://127.0.0.1:8001",
+    "model": "deepseek-v4-flash-0731",
+    "max_tokens": 128,
+    "temperature": 0.6,
+    "loads": [
+      "code",
+      "json",
+      "prose"
+    ],
+    "conc": 5,
+    "rounds_per_window": 2,
+    "windows": 2,
+    "warmup": 3,
+    "ts": "2026-08-05 23:57:46"
+  },
+  "loads": {
+    "code": {
+      "windows": [
+        {
+          "tag": "FINAL-code-c5-w0",
+          "conc": 5,
+          "rounds": 2,
+          "n_ok": 10,
+          "n_err": 0,
+          "wall_s": 10.035,
+          "total_prompt_tokens": 439,
+          "total_output_tokens": 1280,
+          "agg_tps": 127.553,
+          "total_tps": 171.299,
+          "ttft_ms_mean": 387.196,
+          "tpot_ms_mean": 35.026,
+          "acceptance_window": 0.8193
+        },
+        {
+          "tag": "FINAL-code-c5-w1",
+          "conc": 5,
+          "rounds": 2,
+          "n_ok": 10,
+          "n_err": 0,
+          "wall_s": 9.413,
+          "total_prompt_tokens": 430,
+          "total_output_tokens": 1280,
+          "agg_tps": 135.982,
+          "total_tps": 181.663,
+          "ttft_ms_mean": 380.328,
+          "tpot_ms_mean": 33.246,
+          "acceptance_window": 0.8147
+        }
+      ],
+      "agg_tps_median": 131.767,
+      "agg_tps_values": [
+        127.553,
+        135.982
+      ],
+      "acceptance_median": 0.817,
+      "acceptance_values": [
+        0.8193,
+        0.8147
+      ]
+    },
+    "json": {
+      "windows": [
+        {
+          "tag": "FINAL-json-c5-w0",
+          "conc": 5,
+          "rounds": 2,
+          "n_ok": 10,
+          "n_err": 0,
+          "wall_s": 7.274,
+          "total_prompt_tokens": 518,
+          "total_output_tokens": 917,
+          "agg_tps": 126.068,
+          "total_tps": 197.282,
+          "ttft_ms_mean": 338.646,
+          "tpot_ms_mean": 30.829,
+          "acceptance_window": 0.83
+        },
+        {
+          "tag": "FINAL-json-c5-w1",
+          "conc": 5,
+          "rounds": 2,
+          "n_ok": 10,
+          "n_err": 0,
+          "wall_s": 8.38,
+          "total_prompt_tokens": 504,
+          "total_output_tokens": 996,
+          "agg_tps": 118.853,
+          "total_tps": 178.996,
+          "ttft_ms_mean": 352.795,
+          "tpot_ms_mean": 34.017,
+          "acceptance_window": 0.8457
+        }
+      ],
+      "agg_tps_median": 122.46,
+      "agg_tps_values": [
+        126.068,
+        118.853
+      ],
+      "acceptance_median": 0.8378,
+      "acceptance_values": [
+        0.83,
+        0.8457
+      ]
+    },
+    "prose": {
+      "windows": [
+        {
+          "tag": "FINAL-prose-c5-w0",
+          "conc": 5,
+          "rounds": 2,
+          "n_ok": 10,
+          "n_err": 0,
+          "wall_s": 14.747,
+          "total_prompt_tokens": 297,
+          "total_output_tokens": 1229,
+          "agg_tps": 83.337,
+          "total_tps": 103.476,
+          "ttft_ms_mean": 303.262,
+          "tpot_ms_mean": 52.007,
+          "acceptance_window": 0.4306
+        },
+        {
+          "tag": "FINAL-prose-c5-w1",
+          "conc": 5,
+          "rounds": 2,
+          "n_ok": 10,
+          "n_err": 0,
+          "wall_s": 15.359,
+          "total_prompt_tokens": 297,
+          "total_output_tokens": 1231,
+          "agg_tps": 80.148,
+          "total_tps": 99.485,
+          "ttft_ms_mean": 377.431,
+          "tpot_ms_mean": 52.371,
+          "acceptance_window": 0.4083
+        }
+      ],
+      "agg_tps_median": 81.743,
+      "agg_tps_values": [
+        83.337,
+        80.148
+      ],
+      "acceptance_median": 0.4194,
+      "acceptance_values": [
+        0.4306,
+        0.4083
+      ]
+    }
+  },
+  "metrics_before_global": {
+    "vllm:spec_decode_num_drafts_total": 11786.0,
+    "vllm:spec_decode_num_draft_tokens_total": 51939.0,
+    "vllm:spec_decode_num_accepted_tokens_total": 30891.0
+  },
+  "metrics_after_global": {
+    "vllm:spec_decode_num_drafts_total": 14384.0,
+    "vllm:spec_decode_num_draft_tokens_total": 60732.0,
+    "vllm:spec_decode_num_accepted_tokens_total": 36348.0
+  },
+  "spec_acceptance_global": 0.6206
+}

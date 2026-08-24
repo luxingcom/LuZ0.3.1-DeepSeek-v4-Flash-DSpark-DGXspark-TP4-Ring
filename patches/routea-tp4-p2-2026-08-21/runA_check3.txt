@@ -1,0 +1,10 @@
+(APIServer pid=1)     raise RuntimeError(
+(APIServer pid=1) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+[04:19:18] [诊断] rank1 容器最近日志:
+Error response from daemon: No such container: vllm-tp4-rank1
+[04:19:18] [诊断] rank2 容器最近日志:
+Error response from daemon: No such container: vllm-tp4-rank2
+[04:19:18] [诊断] rank3 容器最近日志:
+Error response from daemon: No such container: vllm-tp4-rank3
+===PS===
+===KEYLOG===

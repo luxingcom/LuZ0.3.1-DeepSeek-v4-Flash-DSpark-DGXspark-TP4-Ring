@@ -1,0 +1,11 @@
+﻿metric_group,conc,context_len_label,value_tok_s,delta_vs_w4a16_b1,med_ttft_s,measurement,source_report,notes
+PREFILL_AGG,C6,4K,3057,+11.4%,10.47,3-round median,luz031-deployment-2026-08-23.md §3.2,vs W4A16 B1=2744; values 3023/3060/3057
+PREFILL_AGG,C12,4K,3056,+11.6%,18.39,3-round median,luz031-deployment-2026-08-23.md §3.2,vs W4A16 B1=2737; values 3059/3056/3034
+OFFICIAL_DECODE,C1,decode-only,73.9,-23.9% (best +10.1%),,median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.1,official 8/19 ref=97.1|124.0
+OFFICIAL_DECODE,C4,decode-only,186.7,-14.4% (best -6.4%),,median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.1,official 8/19 ref=218.0|233.7
+OFFICIAL_DECODE,C8,decode-only,274.5,-4.1% (best +15.0%),,median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.1,official 8/19 ref=286.3|302.9
+OFFICIAL_DECODE,C12,decode-only,349.3,+1.9% (best +11.0%),,median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.1,official 8/19 ref=342.8|358.2
+G1_DECODE,C1,decode-only,73.9,-3.1%,,median|best,g1-production-restore-2026-08-24.md §1.2,W4A16 G1=71.6|93.9
+G1_DECODE,C4,decode-only,186.7,+9.0%,,median|best,g1-production-restore-2026-08-24.md §1.2,W4A16 G1=203.5|213.2
+G1_DECODE,C8,decode-only,274.5,+11.6%,,median|best,g1-production-restore-2026-08-24.md §1.2,W4A16 G1=306.4|320.3
+G1_DECODE,C12,decode-only,349.3,+17.9%,,median|best,g1-production-restore-2026-08-24.md §1.2,W4A16 G1=411.8|441.9

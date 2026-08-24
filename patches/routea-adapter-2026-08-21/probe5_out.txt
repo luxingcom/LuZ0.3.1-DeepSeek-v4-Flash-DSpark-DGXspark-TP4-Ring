@@ -1,0 +1,62 @@
+torch 2.11.0+cu130 | cuda 13.0 | cap (12, 1)
+
+[A] 48 shards scanned
+   layers.0.ffn.experts.0.w1.scale F8_E8M0 [2048, 128]
+   layers.0.ffn.experts.0.w1.weight I8 [2048, 2048]
+   layers.0.ffn.experts.0.w2.scale F8_E8M0 [4096, 64]
+   layers.0.ffn.experts.0.w2.weight I8 [4096, 1024]
+   layers.0.ffn.experts.0.w3.scale F8_E8M0 [2048, 128]
+   layers.0.ffn.experts.0.w3.weight I8 [2048, 2048]
+[A] w1: packed(2048, 2048) scale(2048, 128) scale_bytes[min=119,max=122]
+[A] w2: packed(4096, 1024) scale(4096, 64) scale_bytes[min=119,max=122]
+[A] w3: packed(2048, 2048) scale(2048, 128) scale_bytes[min=119,max=122]
+
+[B] swizzle_blockscale vs scaled_fp4_quant swizzled SF
+    scaled_fp4_quant: wq(512, 256)torch.uint8 wsf(512, 32)torch.float8_e4m3fn
+    convert_swizzled_to_linear -> (512, 32) torch.float8_e4m3fn
+    swizzle_blockscale(plain) == scaled_fp4_quant wsf bytes: True
+
+[C] fp4 packing nibble convention
+    byte0=0x71 (0x71 => lo nibble=even k(code1=0.5), 0x17 => lo=odd)
+    vLLM scaled_fp4_quant packs EVEN k in LOW nibble: True
+
+[D] E8M0->E4M3 exactness
+    exact bytes: [118..135] count=18 (E8M0 byte b -> 2^(b-127) exactly representable)
+
+[E] direct-consumption GEMM validation (real layer0 expert0 weights)
+    w1 full                            M= 1024 N= 2048 K= 4096: rel=1.41e-03 [PASS]
+    w2 full                            M= 1024 N= 4096 K= 2048: rel=1.41e-03 [PASS]
+    w3 full (odd M)                    M=  257 N= 2048 K= 4096: rel=1.41e-03 [PASS]
+    w13 TP4-shard                      M= 2048 N= 1024 K= 4096: rel=1.41e-03 [PASS]
+    w2 TP4-shard                       M= 2048 N= 4096 K=  512: rel=1.41e-03 [PASS]
+    w2 TP4-shard rank1                 M=  512 N= 4096 K=  512: rel=1.41e-03 [PASS]
+
+[F] routeA original preprocess (requant) vs direct path
+    routeA original (W requant 32x128->nvfp4): rel=7.84e-02
+    direct (zero-requant, E8M0->E4M3 exact):   rel=1.41e-03
+
+[G] per-expert GEMM microbench (TP4-shard shapes, GEMM only, weights cached)
+    gemm1 (N=1024, K=4096) per-expert M_e:
+      M_e=   16:   0.021 ms     6.4 TFLOPS
+      M_e=   32:   0.020 ms    13.2 TFLOPS
+      M_e=   48:   0.022 ms    18.0 TFLOPS
+      M_e=   96:   0.019 ms    43.0 TFLOPS
+      M_e=  192:   0.019 ms    86.0 TFLOPS
+      M_e=  384:   0.033 ms    97.4 TFLOPS
+      M_e=  768:   0.033 ms   194.8 TFLOPS
+      M_e= 1536:   0.035 ms   366.4 TFLOPS
+    gemm2 (N=4096, K=512) per-expert M_e:
+      M_e=   16:   0.013 ms     5.2 TFLOPS
+      M_e=   32:   0.013 ms    10.5 TFLOPS
+      M_e=   48:   0.013 ms    15.8 TFLOPS
+      M_e=   96:   0.013 ms    31.5 TFLOPS
+      M_e=  192:   0.013 ms    62.9 TFLOPS
+      M_e=  384:   0.019 ms    86.4 TFLOPS
+      M_e=  768:   0.023 ms   141.5 TFLOPS
+      M_e= 1536:   0.078 ms    82.5 TFLOPS
+    A-quant M=2048,K=4096: 0.297 ms
+
+[G2] grouped fp4 gemm availability:
+     (cutlass_scaled_fp4_group_mm present: False )
+
+== PROBE5 DONE ==

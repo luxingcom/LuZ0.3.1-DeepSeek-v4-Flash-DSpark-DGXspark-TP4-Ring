@@ -1,0 +1,41 @@
+records: 48 (4 层 × 12 prefill batch)
+
+=== 基础统计（按层） ===
+  layer0: 30717 tokens, distinct sets=466, top10-set 覆盖=62.2%, top100=95.4%, 命中专家数/step min/med/max=6/253/256
+  layer1: 30717 tokens, distinct sets=466, top10-set 覆盖=62.2%, top100=95.4%, 命中专家数/step min/med/max=6/250/256
+  layer2: 30717 tokens, distinct sets=466, top10-set 覆盖=62.2%, top100=95.4%, 命中专家数/step min/med/max=6/247/256
+  layer3: 30717 tokens, distinct sets=7937, top10-set 覆盖=31.5%, top100=44.1%, 命中专家数/step min/med/max=6/189/252
+
+=== 分桶模拟 A: 共现聚类（用户方案近似, N 预算≤12 expert/桶） ===
+  layer0: G=16, M_g dist=[12897, 2963, 2323, 2153, 1941, 1447, 1264, 1200]...（tokens/桶）, N_g(expert数) dist=[256, 37, 35, 31, 30, 25, 19, 14], 浪费率=95.0%
+  layer1: G=16, M_g dist=[15677, 2708, 2095, 1643, 1335, 1245, 1232, 1232]...（tokens/桶）, N_g(expert数) dist=[256, 35, 23, 15, 11, 11, 6, 6], 浪费率=95.6%
+  layer2: G=16, M_g dist=[8830, 8357, 3080, 1702, 1245, 1232, 1232, 1200]...（tokens/桶）, N_g(expert数) dist=[256, 64, 25, 17, 15, 14, 13, 11], 浪费率=93.1%
+  layer3: G=16, M_g dist=[13658, 8232, 1461, 1010, 941, 876, 850, 667]...（tokens/桶）, N_g(expert数) dist=[253, 59, 47, 32, 32, 30, 27, 27], 浪费率=95.2%
+
+=== 分桶模拟 B: 连续区间分桶（零拷贝, stacked 权重连续切片视图） ===
+  layer0 区间×8: G=32, M_g(对/组) med=4655, max=14991, ≥3072 的组数=26/32
+  layer1 区间×8: G=32, M_g(对/组) med=5003, max=16030, ≥3072 的组数=27/32
+  layer2 区间×8: G=32, M_g(对/组) med=4380, max=17567, ≥3072 的组数=24/32
+  layer3 区间×8: G=32, M_g(对/组) med=4395, max=18670, ≥3072 的组数=22/32
+  layer0 区间×16: G=16, M_g(对/组) med=11325, max=25503, ≥3072 的组数=16/16
+  layer1 区间×16: G=16, M_g(对/组) med=9989, max=22487, ≥3072 的组数=16/16
+  layer2 区间×16: G=16, M_g(对/组) med=11146, max=25201, ≥3072 的组数=16/16
+  layer3 区间×16: G=16, M_g(对/组) med=10432, max=19560, ≥3072 的组数=16/16
+  layer0 区间×32: G=8, M_g(对/组) med=19920, max=33586, ≥3072 的组数=8/8
+  layer1 区间×32: G=8, M_g(对/组) med=22531, max=33520, ≥3072 的组数=8/8
+  layer2 区间×32: G=8, M_g(对/组) med=19121, max=40931, ≥3072 的组数=8/8
+  layer3 区间×32: G=8, M_g(对/组) med=23753, max=35753, ≥3072 的组数=8/8
+
+=== 组合缓存（LRU, 选项 a）: 每层 top-K 组合覆盖率 ===
+  layer0: top-32 set 覆盖 77.7%
+  layer0: top-64 set 覆盖 91.7%
+  layer0: top-128 set 覆盖 97.5%
+  layer1: top-32 set 覆盖 77.7%
+  layer1: top-64 set 覆盖 91.7%
+  layer1: top-128 set 覆盖 97.5%
+  layer2: top-32 set 覆盖 77.7%
+  layer2: top-64 set 覆盖 91.7%
+  layer2: top-128 set 覆盖 97.5%
+  layer3: top-32 set 覆盖 36.2%
+  layer3: top-64 set 覆盖 40.6%
+  layer3: top-128 set 覆盖 46.2%

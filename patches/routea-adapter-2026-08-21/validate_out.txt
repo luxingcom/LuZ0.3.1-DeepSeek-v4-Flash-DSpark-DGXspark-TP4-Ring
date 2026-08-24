@@ -1,0 +1,19 @@
+[selftest] E8M0->E4M3 精确字节范围: [118..135] (共 18/256; 生产实测全模型范围 [118,126] ⊂ 精确域)
+[selftest] K32->K16 扩展数值精确: True
+[selftest] swizzle: (128, 64) -> (128, 64) (128x4 atom, 与 vllm swizzle_blockscale 逐字节一致 — probe5[B] 实证)
+[selftest] OK
+------
+== routeA layer-0 expert-0 真实权重验证 ==
+model: /model0731
+  w1: packed(2048, 2048) scale(2048, 128) scale_bytes[119..122] (E8M0)
+  w2: packed(4096, 1024) scale(4096, 64) scale_bytes[119..122] (E8M0)
+  w3: packed(2048, 2048) scale(2048, 128) scale_bytes[119..122] (E8M0)
+  w1 full  M= 1024: rel=1.41e-03 [PASS]
+  w2 full  M= 1024: rel=1.41e-03 [PASS]
+  w3 full  M=  257: rel=1.41e-03 [PASS]
+  w13 shard N=1024 K=4096 M=2048: rel=1.41e-03 [PASS]
+  w2 shard N=4096 K=512 M=2048: rel=1.41e-03 [PASS]
+  derive (1 expert, 全量形状): 0.18 ms | sf (1, 4096, 256) torch.float8_e4m3fn
+  内存口径: 每 rank 每层新增 = E×N×K/16 字节 ≈ 101 MB/层 × 43 层 ≈ 4.33 GB/rank (TP4)
+
+== 结论: ALL PASS (rel=1.41e-03 量级, 判据 1e-2) ==

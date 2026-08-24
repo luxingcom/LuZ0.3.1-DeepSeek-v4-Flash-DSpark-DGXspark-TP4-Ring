@@ -1,0 +1,23 @@
+    tCrSFA_copy_view_filtered[None, None, 0],
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/nvidia_cutlass_dsl/python_packages/cutlass/_mlir/dialects/_cute_ops_gen.py", line 3608, in __init__
+    super().__init__(self.OPERATION_NAME, self._ODS_REGIONS, self._ODS_OPERAND_SEGMENTS, self._ODS_RESULT_SEGMENTS, attributes=attributes, operands=operands, successors=_ods_successors, regions=regions, loc=loc, ip=ip)
+ValueError: Operation creation failed
+########## [vec32_merge8_K256] EXIT=0 ##########
+
+===== P0 ALL DONE =====
+===CORRECTNESS===
+      7 Reference checking ...
+      7 Skip reference checking: False
+===VEC32K256===
+########## [vec32_merge8_K256] shape=3072,12288,4096 tile=128,128,256 sf_vec=32 tol=1e-2 iter=30 ##########
+  File "/routeb/routeb_official/dense_blockscaled_gemm_persistent_pingpong.py", line 827, in elif_region_12
+    elif warp_idx < self.tma_load_warp_id:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/routeb/routeb_official/dense_blockscaled_gemm_persistent_pingpong.py", line 892, in while_region_15
+    while work_tile.is_valid_tile:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--
+########## [vec32_merge8_K256] EXIT=0 ##########
+
+===== P0 ALL DONE =====

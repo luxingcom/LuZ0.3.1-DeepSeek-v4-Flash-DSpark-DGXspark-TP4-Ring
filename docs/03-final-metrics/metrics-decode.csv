@@ -1,0 +1,15 @@
+﻿metric_group,metric,conc,value,delta_vs_w4a16_b1,measurement,source_report,notes
+DE,step_eff,C1,18.2,+2.8%,4-round median,luz031-deployment-2026-08-23.md §3.3,vs W4A16 B1=17.7 (tokens/step 4.491)
+DE,step_eff,C12,80.2,-8.0%,4-round median,luz031-deployment-2026-08-23.md §3.3,vs W4A16 B1=87.2; W4A4 full decode cost band -6~-9%
+DE_THR4096,step_eff,C1,18.95,,median,luz031-thr2048-retest-2026-08-23.md §2.2,tokens/step 5.225 / ms-per-step 52.9
+DE_THR4096,step_eff,C12,83.6,,median,luz031-thr2048-retest-2026-08-23.md §2.2,tokens/step 4.495 / ms-per-step 12.0
+OFFICIAL_DECODE_SINGLE,agent_tool,fox p512,77.8,-19.9% (best +5.7%),10-round median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.3,official 8/19 ref=97.1|124.0
+OFFICIAL_DECODE_SINGLE,fox p256,,85.0,,median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.3,supplement item; 105.3 best
+OFFICIAL_DECODE_SINGLE,list,,98.0,,median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.3,supplement item; 110.2 best
+OFFICIAL_DECODE_SINGLE,agent_tool_call,agent tool,84.2,-20.4% (best +18.5%),median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.3,official 8/19 ref=105.8|109.4; 129.6 best
+OFFICIAL_DECODE_AGENT,Math,,90.4,-3.0% (best +2.0%),median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.2,official 8/19 ref=93.2|95.4
+OFFICIAL_DECODE_AGENT,JSON,,78.3,-19.3% (best -19.5%),median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.2,official 8/19 ref=97.0|101.1
+OFFICIAL_DECODE_AGENT,Code,,90.2,-8.5% (best +6.0%),median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.2,official 8/19 ref=98.6|102.4
+OFFICIAL_DECODE_AGENT,Communication,,53.8,-19.8% (best -24.5%),median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.2,official 8/19 ref=67.1|72.7
+OFFICIAL_DECODE_AGENT,Narrative,,39.6,-21.9% (best -21.0%),median|best,luz031-bench-and-p0-exec-report-2026-08-23.md §2.2,official 8/19 ref=50.7|51.5
+OFFICIAL_DECODE_AGENT,Average,,70.4,-13.4% (best -9.6%),mean of scenario medians,luz031-bench-and-p0-exec-report-2026-08-23.md §2.2,official 8/19 ref=81.3|84.6

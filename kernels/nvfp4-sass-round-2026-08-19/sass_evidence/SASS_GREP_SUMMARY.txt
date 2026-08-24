@@ -1,0 +1,12 @@
+=== SASS MMA-family grep ===
+129
+HMMA.BF16 sample:
+        /*7260*/                   HMMA.16816.F32.BF16 R192, R124, R14, R192 ;
+        /*72b0*/                   HMMA.16816.F32.BF16 R188, R120, R14, R188 ;
+        /*72f0*/                   HMMA.16816.F32.BF16 R184, R116, R14, R184 ;
+TCGEN05 count:
+0
+e2m1 count:
+0
+FFMA/FADD/FMUL count:
+0

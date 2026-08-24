@@ -1,0 +1,1 @@
+V3 vs V3b (同配置重跑): bitwise=False, mean|dlp|=0.13185 (n=512)

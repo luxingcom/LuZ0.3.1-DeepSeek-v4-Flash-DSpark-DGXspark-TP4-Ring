@@ -1,0 +1,13 @@
+===== bench_A.json =====
+  ttft_4k: median=0.384s  all=[2.388, 0.383, 0.384, 0.386, 0.381]
+  ttft_16k: median=1.585s  all=[8.636, 1.583, 1.585]
+  ttft_2k: median=0.182s  all=[1.209, 0.26, 0.182, 0.18, 0.177]
+  decode_1x256: ttft=0.107s total=4.337s decode_tps=20.81
+  decode_1x256: ttft=0.102s total=4.319s decode_tps=20.87
+  decode_1x256: ttft=0.099s total=4.311s decode_tps=20.9
+  decode_12x128: total=7.826s agg_tps=79.86
+  decode_12x128: total=7.952s agg_tps=81.61
+  logprob: sum=-2629.4 over 3870 tokens (553/prompt), errors=0
+  needle_64k: pass=True pos=mid latency=36.5s resp='</think>X7Q-95-Bravo'
+  needle_64k: pass=False pos=late latency=36.7s resp=' \n</div>\n\n### Our expected answer:\nX7Q-95-Bra'
+  needle_128k: pass=False pos=mid latency=64.1s resp=''

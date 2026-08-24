@@ -1,0 +1,3 @@
+A: w13=[up(w3);gate(w1)]: rel(nvfp4-A)=5.132e-01  rel(mxfp4-A)=7.130e-01
+B: w13=[gate(w1);up(w3)]: rel(nvfp4-A)=5.192e-01  rel(mxfp4-A)=7.170e-01
+== PROBE22 DONE ==

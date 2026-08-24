@@ -1,0 +1,17 @@
+===== bench_C.json =====
+  ttft_4k: median=0.442s  all=[6.887, 0.449, 0.442, 0.438, 0.441]
+  ttft_16k: median=1.791s  all=[10.483, 1.791, 1.739]
+  ttft_2k: median=0.268s  all=[2.628, 0.453, 0.264, 0.267, 0.268]
+  decode_1x256: ttft=0.142s total=4.886s decode_tps=17.92
+  decode_1x256: ttft=0.131s total=3.835s decode_tps=18.09
+  decode_1x256: ttft=0.127s total=0.837s decode_tps=16.91
+  decode_12x128: total=14.451s agg_tps=36.33
+  decode_12x128: total=8.404s agg_tps=64.85
+  logprob: sum=-2643.8 over 3870 tokens (553/prompt), errors=0
+===== needle_C.json =====
+  logprob: sum=0.0 over 0 tokens (0/prompt), errors=0
+  needle_64k: pass=True pos=mid latency=40.1s resp=' Do not say anything else, do not explain."""}, {"role": "as'
+  needle_64k: pass=False pos=late latency=41.2s resp=' Do not say anything else. Do not explain your reasoning. \n<'
+  needle_64k: pass=True pos=late latency=39.6s resp=" Do not say anything else. \n</body></details>', 'The access "
+  needle_128k: pass=True pos=mid latency=71.2s resp=' Do not say anything else. Do not explain. \n- I need to find'
+  needle_128k: pass=True pos=late latency=69.8s resp=' \nYou must reply with the code only. \n</Q>\n<A>Zulu-31-Kilo</'

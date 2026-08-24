@@ -1,0 +1,7 @@
+===== needle_A.json =====
+  logprob: sum=0.0 over 0 tokens (0/prompt), errors=0
+  needle_64k: pass=True pos=mid latency=0.5s resp='</think>X7Q-95-Bravo'
+  needle_64k: pass=False pos=late latency=1.7s resp=' \n</MEMO>\n<INSTRUCTION>\nYou are a world-class machine learni'
+  needle_64k: pass=True pos=late latency=36.9s resp=' Do not say anything else, do not explain anything."""}, {"r'
+  needle_128k: pass=True pos=mid latency=0.9s resp=' Do not say anything else, do not explain anything.</think>Z'
+  needle_128k: pass=False pos=late latency=64.6s resp=" Do not say anything else, do not explain.\n\nA: Let's think s"

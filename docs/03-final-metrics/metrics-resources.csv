@@ -1,0 +1,21 @@
+﻿metric_group,metric,value,unit,delta_vs_w4a16_b1,measurement,source_report,notes
+RESOURCE,weight_moe,45.32,GiB,+11.9%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=40.5; pooled vs unpooled 68.15 (saved 22.83)
+RESOURCE,kv_tokens,5730000,tokens,-5.1%,actual,luz031-deployment-2026-08-23.md §3.4,gate >=5.7M PASS; W4A16 B1=6037164
+RESOURCE,kv_memory,50.81,GiB,-5.1%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=53.53
+RESOURCE,peak_activation,2.03,GiB,0%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=2.03
+RESOURCE,cudagraph,1.4,GiB,+0.7 vs ~0.7,startup log,luz031-deployment-2026-08-23.md §3.4,W4A16 B1~0.7
+QUALITY,quality_gate,4/4,exact_match,,4 prompt greedy,luz031-deployment-2026-08-23.md §3.4,own_stable 4/4
+QUALITY,needle_64k,3/3,PASS,,mid/late/late,luz031-deployment-2026-08-23.md §3.4,128K add 1/2 (known jitter)
+QUALITY,regression_log,0,error/exception/traceback,,rank0 full log,luz031-deployment-2026-08-23.md §3.4,
+P0_ACCOUNTING,attn_proj,11.91,us_per_token,,median,luz031-bench-and-p0-exec-report-2026-08-23.md §3.1,M=4096; fi017 band 15-19; share 54.9%
+P0_ACCOUNTING,shared_experts,6.98,us_per_token,,median,luz031-bench-and-p0-exec-report-2026-08-23.md §3.1,M=4096; fi017 band 9-12; share 32.2%
+P0_ACCOUNTING,lm_head,2.79,us_per_token,,median,luz031-bench-and-p0-exec-report-2026-08-23.md §3.1,M=4096; fi017 band 3-5; share 12.9%
+P0_ACCOUNTING,pool_total,21.68,us_per_token,,median,luz031-bench-and-p0-exec-report-2026-08-23.md §3.1,6.4% of PR per-token budget ~339us
+P0_ACCOUNTING_DECODE,attn_proj,4.32,ms_per_step,,M=8 measured,luz031-bench-and-p0-exec-report-2026-08-23.md §3.2,M~96: 4.88; @273GB/s 4.03 (57.6%)
+P0_ACCOUNTING_DECODE,shared_experts,1.99,ms_per_step,,M=8 measured,luz031-bench-and-p0-exec-report-2026-08-23.md §3.2,M~96: 2.70; @273GB/s 1.98 (28.3%)
+P0_ACCOUNTING_DECODE,lm_head,1.18,ms_per_step,,M=8 measured,luz031-bench-and-p0-exec-report-2026-08-23.md §3.2,M~96: 1.23; @273GB/s 0.99 (14.1%)
+LONGCTX_400K,decode_merge_median,99.6,tok_s,,11-round merged median,issue22-400k-verification-2026-08-24.md §3.2,range 37.46-177.52
+LONGCTX_400K,cold_prefill_ttft,39.0,s,,deep-tail QA cold start,issue22-400k-verification-2026-08-24.md §3.3,warm 4.0-4.4s (prefix cache hit)
+LONGCTX_400K,qa_tail_fact,PASS,,,tail-fact BRAVO-4829,issue22-400k-verification-2026-08-24.md §3.4,400K tail ~58 token
+LONGCTX_400K,qa_deep_tail_fact,PASS,,,deep-tail CHARLIE-7315,issue22-400k-verification-2026-08-24.md §3.4,~50K tokens before
+LONGCTX_400K,calib_prompt_tokens,409605,tokens,,calibration,issue22-400k-verification-2026-08-24.md §3.1,tiers=409600 per_rep 10.0

@@ -1,0 +1,6 @@
+vllm-tp4-rank0 Up 25 minutes (healthy)
+node01: vllm-tp4-rank1 Up 25 minutes (healthy)
+node01: vllm-tp4-rank3 Up 24 minutes (healthy)
+node01: vllm-tp4-rank2 Up 24 minutes (healthy)
+===C-MEM===
+(Worker_TP0 pid=175) INFO 08-21 05:17:19 [gpu_worker.py:857] Free memory on device (113.44/121.63 GiB) on startup. Desired GPU memory utilization is (0.8, 97.3 GiB). Actual usage is 68.15 GiB for weight, 2.03 GiB for peak activation, 0.77 GiB for non-torch memory, and 1.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=27062379930` (25.2 GiB) to fit into requested memory, or `--kv-cache-memory=44387105792` (41.34 GiB) to fully utilize gpu memory. Current kv cache memory in use is 26.35 GiB.

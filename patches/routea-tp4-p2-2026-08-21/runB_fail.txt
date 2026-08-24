@@ -1,0 +1,30 @@
+(APIServer pid=1) WARNING 08-21 04:46:16 [envs.py:2111] Unknown vLLM environment variable detected: VLLM_MOE_W4A4_MIN_M
+(APIServer pid=1) WARNING 08-21 04:46:16 [envs.py:2111] Unknown vLLM environment variable detected: VLLM_MOE_W4A4_CG
+(APIServer pid=1) WARNING 08-21 04:46:16 [envs.py:2111] Unknown vLLM environment variable detected: VLLM_MOE_W4A4
+(Worker_TP0 pid=178) INFO 08-21 04:49:01 [mxfp4.py:1734] Using W4A4B12xExperts
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334] EngineCore failed to start.
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334] Traceback (most recent call last):
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1303, in run_engine_core
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]     return func(*args, **kwargs)
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1069, in __init__
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]     super().__init__(
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 140, in __init__
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]     return func(*args, **kwargs)
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 301, in _initialize_kv_caches
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]     kv_cache_configs = get_kv_cache_configs(
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]                        ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py", line 2132, in get_kv_cache_configs
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]     _check_enough_kv_cache_memory(
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py", line 758, in _check_enough_kv_cache_memory
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334]     raise ValueError(
+(EngineCore pid=133) ERROR 08-21 04:52:25 [core.py:1334] ValueError: No available memory for the cache blocks. Try increasing `gpu_memory_utilization` when initializing the engine (this flag also controls CPU memory reservation on the CPU backend, despite its name). See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more details.
+(EngineCore pid=133) ERROR 08-21 04:52:29 [multiproc_executor.py:284] Worker proc VllmWorker-0 died unexpectedly (exit code: None), shutting down executor.
+(EngineCore pid=133) Traceback (most recent call last):

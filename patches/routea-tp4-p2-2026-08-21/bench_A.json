@@ -1,0 +1,139 @@
+{
+ "ts": 1787286997.7167761,
+ "ttft_4k": [
+  {
+   "ttft_s": 2.388
+  },
+  {
+   "ttft_s": 0.383
+  },
+  {
+   "ttft_s": 0.384
+  },
+  {
+   "ttft_s": 0.386
+  },
+  {
+   "ttft_s": 0.381
+  }
+ ],
+ "ttft_16k": [
+  {
+   "ttft_s": 8.636
+  },
+  {
+   "ttft_s": 1.583
+  },
+  {
+   "ttft_s": 1.585
+  }
+ ],
+ "ttft_2k": [
+  {
+   "ttft_s": 1.209
+  },
+  {
+   "ttft_s": 0.26
+  },
+  {
+   "ttft_s": 0.182
+  },
+  {
+   "ttft_s": 0.18
+  },
+  {
+   "ttft_s": 0.177
+  }
+ ],
+ "decode_1x256": [
+  {
+   "ttft_s": 0.107,
+   "total_s": 4.337,
+   "decode_tps": 20.81
+  },
+  {
+   "ttft_s": 0.102,
+   "total_s": 4.319,
+   "decode_tps": 20.87
+  },
+  {
+   "ttft_s": 0.099,
+   "total_s": 4.311,
+   "decode_tps": 20.9
+  }
+ ],
+ "decode_12x128": [
+  {
+   "n_req": 12,
+   "total_s": 7.826,
+   "agg_tps": 79.86
+  },
+  {
+   "n_req": 12,
+   "total_s": 7.952,
+   "agg_tps": 81.61
+  }
+ ],
+ "logprob": [
+  {
+   "prompt_id": 0,
+   "n_tok": 40,
+   "sum_lp": -97.56
+  },
+  {
+   "prompt_id": 1,
+   "n_tok": 25,
+   "sum_lp": -94.278
+  },
+  {
+   "prompt_id": 2,
+   "n_tok": 48,
+   "sum_lp": -85.923
+  },
+  {
+   "prompt_id": 3,
+   "n_tok": 27,
+   "sum_lp": -102.154
+  },
+  {
+   "prompt_id": 4,
+   "n_tok": 20,
+   "sum_lp": -77.688
+  },
+  {
+   "prompt_id": 5,
+   "n_tok": 1224,
+   "sum_lp": -880.959
+  },
+  {
+   "prompt_id": 6,
+   "n_tok": 2486,
+   "sum_lp": -1290.868
+  }
+ ],
+ "needle_64k": [
+  {
+   "target_ctx_tok": 64000,
+   "pos": "mid",
+   "pass": true,
+   "resp": "</think>X7Q-95-Bravo",
+   "latency_s": 36.5
+  },
+  {
+   "target_ctx_tok": 64000,
+   "pos": "late",
+   "pass": false,
+   "resp": " \n</div>\n\n### Our expected answer:\nX7Q-95-Bra",
+   "latency_s": 36.7
+  }
+ ],
+ "needle_128k": [
+  {
+   "target_ctx_tok": 128000,
+   "pos": "mid",
+   "pass": false,
+   "resp": "",
+   "latency_s": 64.1
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+[restart] 清理四机容器
+[restart] 启动 head (rank0)
+[restart] 轮询 TCPStore :25999 (≤600s)
+[restart] TCPStore 就绪, 错峰启动 workers (15s 间隔)
+[restart] rank1 (node01) 已下发
+[restart] rank2 (node01) 已下发
+[restart] rank3 (node01) 已下发
+[restart] 等待就绪: 'Application startup complete' (≤20min)
+[restart] RUN READY (mode=2)
+(Worker_TP0 pid=175) INFO 08-21 05:08:46 [mxfp4.py:426] Using 'B12X_MXFP4' Mxfp4 MoE backend.
+(Worker_TP0 pid=175) INFO 08-21 05:10:05 [mxfp4.py:1734] Using W4A4B12xExperts
+(EngineCore pid=130) INFO 08-21 05:12:38 [kv_cache_utils.py:2177] GPU KV cache size: 2,920,970 tokens
+===PS===
+vllm-tp4-rank0 Up 16 minutes (healthy)

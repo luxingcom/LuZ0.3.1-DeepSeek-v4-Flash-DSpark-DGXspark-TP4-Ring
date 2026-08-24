@@ -1,0 +1,9 @@
+(EngineCore pid=251) INFO 08-21 03:08:14 [gpu_worker.py:857] Free memory on device (113.38/121.63 GiB) on startup. Desired GPU memory utilization is (0.85, 103.38 GiB). Actual usage is 19.48 GiB for weight, 1.63 GiB for peak activation, 1.42 GiB for non-torch memory, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=86660134196` (80.71 GiB) to fit into requested memory, or `--kv-cache-memory=97393234432` (90.7 GiB) to fully utilize gpu memory. Current kv cache memory in use is 80.86 GiB.
+[run] prompt 0: 73 prompt-lp, 48 gen-lp, text=' talags _“_ nalukop kasagaran kabungtoran anc}<? económics忐 '
+[run] prompt 1: 61 prompt-lp, 48 gen-lp, text=' _“_ nalista unflaggedgedrive talags _“_ dével持续的半月}<? econó'
+[run] prompt 2: 116 prompt-lp, 48 gen-lp, text=' talags dével持续的Insoluble hilabihan�이지�� dével持续的徘不掉 nalista'
+[run] prompt 3: 97 prompt-lp, 48 gen-lp, text=' talags _“_ nalukop kasagaran dekameters Duodecimal etxek慌失措'
+[run] prompt 4: 60 prompt-lp, 48 gen-lp, text=' talags罕 peloton dével持续的徘不掉aharoa kwadrado nalukop kasagara'
+[run] prompt 5: 69 prompt-lp, 48 gen-lp, text='kus尷nels burujcbKaginharian-saluran statisticheschrift _“_ n'
+[run] prompt 6: 36 prompt-lp, 48 gen-lp, text=' talagsikoa.”#ACC550 dévelージ económics第三人半功 petabits wrap-ar'
+[run] wrote /work/lp_v2.json

@@ -1,0 +1,12 @@
+/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py:1182:            and "VLLM_USE_BREAKABLE_CUDAGRAPH" not in os.environ
+/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py:1196:            os.environ["VLLM_USE_BREAKABLE_CUDAGRAPH"] = "1"
+/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py:1198:                "Auto-enabling VLLM_USE_BREAKABLE_CUDAGRAPH=1. "
+/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py:1199:                "Set VLLM_USE_BREAKABLE_CUDAGRAPH=0 to opt out."
+/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py:1202:        if envs.VLLM_USE_BREAKABLE_CUDAGRAPH:
+===COMPILE_MODE===
+37:class CompilationMode(enum.IntEnum):
+1014:        if self.mode == CompilationMode.VLLM_COMPILE and self.backend not in [
+1075:        if self.mode == CompilationMode.NONE:
+1089:        assert self.mode == CompilationMode.VLLM_COMPILE
+1129:        if self.mode != CompilationMode.VLLM_COMPILE:
+1295:            return self.mode == CompilationMode.VLLM_COMPILE

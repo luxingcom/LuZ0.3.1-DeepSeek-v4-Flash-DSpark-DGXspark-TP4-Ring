@@ -1,0 +1,9 @@
+== kernel1 方案B 本容器实测 ==
+FlashInfer 0.6.15 API 完整：mm_fp4/grouped_mm_fp4/nvfp4_quantize/nvfp4_attention_sm120/nvfp4_kv_quantize 均在
+mm_fp4 backend 实测：
+  b12x/cute-dsl -> RuntimeError: CuTe DSL is not available（NGC wheel 未编入 CuTe DSL 扩展）
+  trtllm -> BackendSupportedError: capability 121 不支持
+  cudnn -> RuntimeError: aDesc 描述符错误（布局不符）
+  cutlass -> TypeError: TVM ffi 参数类型错误
+结论：该 wheel 无 sm_121 可用的原生 FP4 GEMM backend -> 方案B需：完整 vLLM 源码构建(cutlass_scaled_fp4_mm_sm120a) 或 重编 FlashInfer wheel(含cute-dsl/b12x) 或 FlashInfer TOT
+SASS 门禁修正确认：SM12x 用 grep -iE mma.*e2m1|mmaf（非 tcgen05，NVIDIA 官方确认）

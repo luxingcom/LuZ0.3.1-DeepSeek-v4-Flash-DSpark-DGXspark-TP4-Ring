@@ -1,0 +1,11 @@
+== v16 as-shipped ==
+CompilationError: dot_scaled() got multiple values for argument lhs_format
+== 修复后(F1位置参数+F2 k_pack=True) ==
+8/8 PASS max_abs_err=0.000000
+== 性能 ==
+0.1~0.2 TFLOPS (torch fp32 对照 17.1~18.4)
+== SASS/PTX ==
+HMMA.16816.F32.BF16 x64 (全部); E4M3 MMA 0; TCGEN05 0; FFMA 264; SASS 100289 行
+PTX: mma 全 .bf16 + cvt.rn.f16x2.e4m3x2 转换
+== 结论 ==
+e4m3 dot_scaled 在 Triton 3.6.0/sm_121 = e4m3->fp16 转换 + bf16 MMA + 标量 scale 模拟，无原生 FP8 MMA

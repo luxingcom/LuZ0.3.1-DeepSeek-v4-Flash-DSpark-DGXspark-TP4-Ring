@@ -1,0 +1,23 @@
+# build artifacts / scratch (never release)
+__pycache__/
+*.pyc
+*.pyo
+*.zip
+*.tar.gz
+*.tgz
+*.so
+*.bin
+*.log
+*.ptx
+*.sass.txt
+
+# staging of unredacted server fetch (organized copies already in repo)
+_server_fetch/
+
+# scratch verification logs
+_*.txt
+_build_manifest.txt
+
+# OS
+.DS_Store
+Thumbs.db

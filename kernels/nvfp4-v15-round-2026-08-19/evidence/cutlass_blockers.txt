@@ -1,0 +1,4 @@
+== CUTLASS build blockers ==
+B1: torch C++ headers missing (torch/all.h absent)
+B2: CUTLASS 3.9 source throttled; bundled 4.3.4 trimmed (no arch/mma_sm120.h)
+B3: layout_SFA/SFB required in blockscaled Arguments (TODO markers confirmed)

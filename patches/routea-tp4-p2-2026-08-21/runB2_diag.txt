@@ -1,0 +1,20 @@
+aicad-v18-server Up 20 hours (healthy)
+aicad-prometheus-1 Exited (137) 20 hours ago
+aicad-alertmanager-1 Up 20 hours
+aicad-ragas-eval Up 20 hours (healthy)
+===HEADLOG===
+[i] serve 命令: rm -rf /tmp/plugin_a1_install; cp -r <INSTALL_DIR>/nvfp4/plugin_a1 /tmp/plugin_a1_install 2>/dev/null; pip install --no-deps -q /tmp/plugin_a1_install >/dev/null 2>&1; vllm serve  --model /models  --served-model-name deepseek-v4-flash-0731  --kv-cache-dtype nvfp4_ds_mla  --max-model-len 600000  --max-num-seqs 12  --max-num-batched-tokens 4096  --long-prefill-token-threshold 1024  --scheduling-policy priority  --gpu-memory-utilization 0.92  --enable-auto-tool-choice  --tool-call-parser deepseek_v4  --reasoning-parser deepseek_v4  --speculative-config '{"method":"dspark","num_speculative_tokens":7,"draft_sample_method":"probabilistic"}'\
+  --moe-backend flashinfer_b12x  --distributed-executor-backend mp  --distributed-timeout-seconds 300  --port 8001  --api-key "<KEY_PREFIX_OLD>98d4cae30a416366729f09202b1f013a429a13679f973c09c5344594"  --enable-flashinfer-autotune  --max-cudagraph-capture-size 96  --cudagraph-capture-sizes 1 2 4 8 16 24 32 36 40 48 56 64 72 80 88 96  --enable-prefix-caching  --enable-prompt-tokens-details  --generation-config vllm  --tensor-parallel-size 4 --nnodes 4 --node-rank 0  --master-addr <NODE_IP> --master-port 25999
+[check] <INSTALL_DIR>/scripts/start_tp4_head.sh
+  ✓ 语法通过
+  ✓ 无注释吞续行
+  ✓ 无尾随空格续行
+  ✗ 缺关键参数: gpu-memory-utilization 0.80
+  ✓ 关键参数检查完成
+  ✓ 依赖文件检查完成
+  ✓ SERVE_CMD 完整 (长度 6270)
+  ✓ HOME=/home/<USER> (非 root, $HOME 挂载安全)
+[check] ❌ 发现 1 类问题, 请修复后重试
+[i] 前置自检失败, 终止启动 (修复后重试)
+===DOCKERLOG===
+Error response from daemon: No such container: vllm-tp4-rank0

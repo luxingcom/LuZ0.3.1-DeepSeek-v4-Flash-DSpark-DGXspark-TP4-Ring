@@ -1,0 +1,17 @@
+=== ① 权重 N-concat 组装代价 ===
+  D2D copy 576MB: 5.562 ms (202 GB/s 双向带宽)
+  torch.cat 48×12MB: 5.420 ms/层 -> ×43 层 = 233.1 ms/step
+  index_select stacked[256,12MB]×48: 5.445 ms/层 -> ×43 = 234.1 ms/step
+  index_select 40 expert×3.4MB (rank口径): 1.306 ms/层 -> ×43 = 56.2 ms/step
+  index_select 60 expert×3.4MB (rank口径): 1.933 ms/层 -> ×43 = 83.1 ms/step
+  index_select 80 expert×3.4MB (rank口径): 2.588 ms/层 -> ×43 = 111.3 ms/step
+
+=== ② token gather/scatter 开销（M=4096 chunk） ===
+  dup gather index_select [4096,4096]bf16 -> [24576,4096]: 1.483 ms (253 GB/s) -> ×43 = 63.7 ms/step
+  scatter-add index_add_ [24576,4096]->[4096,4096] (含零初始化): 2.860 ms -> ×43 = 123.0 ms/step
+  permute gather [4096,4096]: 0.305 ms -> ×43 = 13.1 ms/step
+
+=== 汇总（朴素方案, rank 口径 60 命中专家/层）===
+  权重组装 83.1 + gather 63.7 + scatter 123.0 = 269.8 ms/step
+
+[done] wrote /work/p1_overhead.json

@@ -1,0 +1,56 @@
+            self.compilation_config.mode = CompilationMode.NONE
+
+        # For model classes don't carry @support_torch_compile —
+        # the breakable cudagraph is the supported PIECEWISE path. Auto-enable
+        # it unless the user has explicitly opted out via the env var.
+        if (
+            self.model_config is not None
+            and "VLLM_USE_BREAKABLE_CUDAGRAPH" not in os.environ
+            and any(
+                a
+                in (
+                    "DeepseekV4ForCausalLM",
+                    "DeepSeekV4MTPModel",
+                    "InklingForCausalLM",
+                    "InklingForConditionalGeneration",
+                    "MiniMaxM3SparseForCausalLM",
+                    "MiniMaxM3SparseForConditionalGeneration",
+                )
+                for a in self.model_config.architectures
+            )
+        ):
+            os.environ["VLLM_USE_BREAKABLE_CUDAGRAPH"] = "1"
+            logger.info_once(
+                "Auto-enabling VLLM_USE_BREAKABLE_CUDAGRAPH=1. "
+                "Set VLLM_USE_BREAKABLE_CUDAGRAPH=0 to opt out."
+            )
+
+        if envs.VLLM_USE_BREAKABLE_CUDAGRAPH:
+            logger.warning_once(
+                "VLLM_USE_BREAKABLE_CUDAGRAPH is set, disabling vLLM's "
+                "torch.compile pipeline. Equivalent to -cc.mode=none."
+            )
+            self.compilation_config.mode = CompilationMode.NONE
+
+        if self.compilation_config.backend == "eager" or (
+            self.compilation_config.mode is not None
+            and self.compilation_config.mode != CompilationMode.VLLM_COMPILE
+        ):
+            logger.warning(
+                "Inductor compilation was disabled by user settings, "
+                "optimizations settings that are only active during "
+===MODES===
+class CompilationMode(enum.IntEnum):
+    """The compilation approach used for torch.compile-based compilation of the
+    model."""
+
+    NONE = 0
+    """No torch.compile compilation is applied, model runs in fully eager pytorch mode.
+    The model runs as-is."""
+    STOCK_TORCH_COMPILE = 1
+    """The standard `torch.compile` compilation pipeline."""
+    DYNAMO_TRACE_ONCE = 2
+    """Single Dynamo trace through the model, avoiding recompilation."""
+    VLLM_COMPILE = 3
+    """Custom vLLM Inductor-based backend with caching, piecewise compilation,
+    shape specialization, and custom passes."""

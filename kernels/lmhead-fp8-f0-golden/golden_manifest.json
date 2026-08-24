@@ -1,0 +1,57 @@
+{
+  "asset": "lmhead-fp8-f0-golden",
+  "generated_by": "architect-2 (工程保障团队 系统架构师)",
+  "date": "2026-08-24",
+  "project": "lm_head FP8 F0 契约核对 (lmhead-fp8-project-2026-08-23.md)",
+  "source_checkpoint": "<INSTALL_DIR>/models/deepseek-v4-flash-0731/",
+  "source_shard": "model-00045-of-00048.safetensors",
+  "tensor": {
+    "key": "head.weight",
+    "dtype": "BF16",
+    "shape": [129280, 4096],
+    "data_offsets": [262164, 1059323924],
+    "bytes": 1059061760,
+    "md5_full_bf16": "a1241ccc196be2cb58aa80e7a2ba4b91",
+    "note_row0_anomaly": "row 0 (token 0) has anomalous large-magnitude values in K[0:224] (maxabs up to 4e37); rows 1+ are normal (~0.5-3.8). Documented in F0 report; excluded from golden sample."
+  },
+  "conversion": {
+    "target_dtype": "FP8 E4M3 (Float8E4M3FN)",
+    "scale_dtype": "E8M0 (Float8E8M0FNU)",
+    "scale_layout": "routeB native [N, ceil(K/32)], sf_vec=32, per-row x 32-K group",
+    "scale_rule": "scale = 2^ceil(log2(max_abs)); E8M0 byte = e + 127 (bias 127)",
+    "payload_rule": "round-to-nearest-E4M3(w / scale); E4M3 normal + subnormal (flush < 2^-9)",
+    "precision_envelope": {
+      "abs_err_bound": "scale * 2^-4 (verified tight: max_abs_err=0.125 = 2*2^-4)",
+      "max_rel_err": "2^-4 = 6.25% for top-binade elements",
+      "note": "mid-block small elements have larger relative error (block dynamic range), bounded absolute error (see verify report)"
+    },
+    "byte_accounting_per_rank_tp4": {
+      "bf16_payload_bytes": 264765440,
+      "fp8_payload_bytes": 132382720,
+      "scale_bytes_nx128": 4136960,
+      "total_fp8_plus_scale": 136519680,
+      "net_save_vs_bf16": 128245760
+    }
+  },
+  "golden_sample": {
+    "rows": [1, 4096],
+    "bf16_ref_bytes": 33554432,
+    "fp8_payload_file": "head_fp8_rows1_4097.bin",
+    "fp8_payload_bytes": 16777216,
+    "fp8_payload_md5": "afebee1335743dc085b21d553064d2a1",
+    "scale_file": "head_scale_rows1_4097.bin",
+    "scale_bytes": 524288,
+    "scale_md5": "e4adaf4f07f7db585a68e10aa185a820",
+    "layout": "FP8 payload [4096, 4096] K-contiguous; scale [4096, 128] E8M0"
+  },
+  "verification": {
+    "rows_verified": 16384,
+    "row_start": 1,
+    "max_abs_err": 0.125,
+    "max_rel_err_significant_w_ge_1e-2": 0.163636,
+    "worst_row": 187,
+    "rms_abs_err": 0.004647,
+    "method": "offline CPU dequant compare (convert_lmhead_fp8.py --mode=verify)"
+  },
+  "regen_command": "python3 convert_lmhead_fp8.py --mode=manifest | --mode=convert --rows=N --row-start=R --out-dir=DIR | --mode=verify --rows=N --row-start=R"
+}

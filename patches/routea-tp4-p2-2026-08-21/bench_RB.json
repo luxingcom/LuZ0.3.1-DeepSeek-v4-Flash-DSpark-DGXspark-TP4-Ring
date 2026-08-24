@@ -1,0 +1,114 @@
+{
+ "ts": 1787291015.285771,
+ "ttft_4k": [
+  {
+   "ttft_s": 2.345
+  },
+  {
+   "ttft_s": 0.394
+  },
+  {
+   "ttft_s": 0.396
+  },
+  {
+   "ttft_s": 0.388
+  },
+  {
+   "ttft_s": 0.384
+  }
+ ],
+ "ttft_16k": [
+  {
+   "ttft_s": 8.652
+  },
+  {
+   "ttft_s": 1.601
+  },
+  {
+   "ttft_s": 1.608
+  }
+ ],
+ "ttft_2k": [
+  {
+   "ttft_s": 1.222
+  },
+  {
+   "ttft_s": 0.244
+  },
+  {
+   "ttft_s": 0.186
+  },
+  {
+   "ttft_s": 0.184
+  },
+  {
+   "ttft_s": 0.184
+  }
+ ],
+ "decode_1x256": [
+  {
+   "ttft_s": 0.101,
+   "total_s": 4.326,
+   "decode_tps": 20.83
+  },
+  {
+   "ttft_s": 0.096,
+   "total_s": 4.331,
+   "decode_tps": 20.78
+  },
+  {
+   "ttft_s": 0.093,
+   "total_s": 4.326,
+   "decode_tps": 20.79
+  }
+ ],
+ "decode_12x128": [
+  {
+   "n_req": 12,
+   "total_s": 7.929,
+   "agg_tps": 78.07
+  },
+  {
+   "n_req": 12,
+   "total_s": 7.751,
+   "agg_tps": 82.83
+  }
+ ],
+ "logprob": [
+  {
+   "prompt_id": 0,
+   "n_tok": 40,
+   "sum_lp": -98.786
+  },
+  {
+   "prompt_id": 1,
+   "n_tok": 25,
+   "sum_lp": -94.503
+  },
+  {
+   "prompt_id": 2,
+   "n_tok": 48,
+   "sum_lp": -85.494
+  },
+  {
+   "prompt_id": 3,
+   "n_tok": 27,
+   "sum_lp": -101.446
+  },
+  {
+   "prompt_id": 4,
+   "n_tok": 20,
+   "sum_lp": -77.303
+  },
+  {
+   "prompt_id": 5,
+   "n_tok": 1224,
+   "sum_lp": -868.521
+  },
+  {
+   "prompt_id": 6,
+   "n_tok": 2486,
+   "sum_lp": -1286.864
+  }
+ ]
+}

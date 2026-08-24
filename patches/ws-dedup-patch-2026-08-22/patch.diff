@@ -1,0 +1,133 @@
+--- src_orig/flashinfer_b12x_moe.py	2026-08-22 21:48:27.457662200 +0800
++++ flashinfer_b12x_moe.py	2026-08-22 21:52:35.378459100 +0800
+@@ -1,11 +1,14 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+ 
++import os
++import threading
+ from typing import Any
+ 
+ import torch
+ 
+ import vllm.model_executor.layers.fused_moe.modular_kernel as mk
++from vllm.logger import init_logger
+ from vllm.model_executor.layers.fused_moe.activation import MoEActivation
+ from vllm.model_executor.layers.fused_moe.config import (
+     FusedMoEConfig,
+@@ -26,6 +29,35 @@
+     has_flashinfer_b12x_moe,
+ )
+ 
++logger = init_logger(__name__)
++
++# --- b12x wrapper cross-layer dedup (workspace patch, 2026-08-22) -------------
++# Module-level geometry-keyed pool of B12xMoEWrapper instances. Enabled only
++# when VLLM_B12X_SHARED_WRAPPER=1; when disabled (default) behavior is
++# byte-identical to the unpatched module (each layer creates its own wrapper).
++#
++# Rationale (see ws-dedup-patch-2026-08-22.md): with use_cuda_graph=True each
++# B12xMoEWrapper pre-allocates its own static/dynamic workspace + _moe_output
++# sized for max_num_tokens. DSv4-Flash TP4 has 43 MoE layers with identical
++# geometry, so per-layer wrappers cost 43x the workspace (~0.3-0.65 GB/layer).
++# Sharing one wrapper per geometry reduces this to 1x. Sharing is safe because:
++#   * the wrapper is stateless w.r.t. weights — run() receives w1/w2 per call
++#     and its weight-view cache is keyed by data_ptr();
++#   * all layers execute serially on the same stream, so layer N+1 overwriting
++#     layer N's scratch is safe (write-before-read semantics per launch);
++#   * capacity is locked at max_num_tokens (use_cuda_graph=True); any resize
++#     need fails fast rather than corrupting captured graphs.
++_B12X_WRAPPER_POOL: "dict[tuple, Any]" = {}
++_B12X_WRAPPER_POOL_LOCK = threading.Lock()
++
++
++def _b12x_wrapper_pool_enabled() -> bool:
++    """VLLM_B12X_SHARED_WRAPPER=1 enables the shared wrapper pool (off=0)."""
++    return os.environ.get("VLLM_B12X_SHARED_WRAPPER", "0") == "1"
++
++
++# ------------------------------------------------------------------------------
++
+ 
+ class FlashInferB12xExperts(mk.FusedMoEExpertsModular):
+     """FlashInfer CuteDSL fused MoE expert for SM12x (SM120/SM121,
+@@ -228,22 +260,69 @@
+         return True
+ 
+     def _ensure_wrapper(self) -> None:
+-        """Lazily create B12xMoEWrapper on first use."""
++        """Lazily create B12xMoEWrapper on first use.
++
++        With VLLM_B12X_SHARED_WRAPPER=1, the wrapper is looked up from (or
++        created into) a module-level geometry-keyed pool so that MoE layers
++        with identical geometry share one wrapper and its pre-allocated
++        workspace (43x -> 1x on DSv4-Flash). With the env unset/0, each
++        instance creates its own wrapper exactly as before.
++        """
+         if self._wrapper is not None:
+             return
+ 
+         from flashinfer.fused_moe import B12xMoEWrapper
+ 
+-        self._wrapper = B12xMoEWrapper(
+-            num_experts=self.global_num_experts,
+-            top_k=self.topk,
+-            hidden_size=self.hidden_dim,
+-            intermediate_size=self.intermediate_size_per_partition,
+-            use_cuda_graph=True,
+-            max_num_tokens=self.max_num_tokens,
+-            num_local_experts=self.num_local_experts,
+-            activation=self._activation_str,
++        if not _b12x_wrapper_pool_enabled():
++            self._wrapper = B12xMoEWrapper(
++                num_experts=self.global_num_experts,
++                top_k=self.topk,
++                hidden_size=self.hidden_dim,
++                intermediate_size=self.intermediate_size_per_partition,
++                use_cuda_graph=True,
++                max_num_tokens=self.max_num_tokens,
++                num_local_experts=self.num_local_experts,
++                activation=self._activation_str,
++            )
++            return
++
++        # Geometry key: every constructor argument that shapes the workspace.
++        # Remaining ctor params are constant for this class (quant dtype is
++        # asserted to be nvfp4 in __init__; device / output_dtype / swiglu_* /
++        # source_format keep wrapper defaults) so they cannot differentiate
++        # two instances of FlashInferB12xExperts.
++        key = (
++            self.global_num_experts,
++            self.topk,
++            self.hidden_dim,
++            self.intermediate_size_per_partition,
++            self.max_num_tokens,
++            self.num_local_experts,
++            self._activation_str,
+         )
++        with _B12X_WRAPPER_POOL_LOCK:
++            wrapper = _B12X_WRAPPER_POOL.get(key)
++            if wrapper is None:
++                wrapper = B12xMoEWrapper(
++                    num_experts=self.global_num_experts,
++                    top_k=self.topk,
++                    hidden_size=self.hidden_dim,
++                    intermediate_size=self.intermediate_size_per_partition,
++                    # Capacity locked at max_num_tokens: the shared wrapper
++                    # must never be resized after CUDA graph capture.
++                    use_cuda_graph=True,
++                    max_num_tokens=self.max_num_tokens,
++                    num_local_experts=self.num_local_experts,
++                    activation=self._activation_str,
++                )
++                _B12X_WRAPPER_POOL[key] = wrapper
++                logger.info(
++                    "B12x shared wrapper pool: created wrapper for geometry "
++                    "%s (pool size=%d; cross-layer workspace dedup active)",
++                    key,
++                    len(_B12X_WRAPPER_POOL),
++                )
++        self._wrapper = wrapper
+ 
+     def apply(
+         self,

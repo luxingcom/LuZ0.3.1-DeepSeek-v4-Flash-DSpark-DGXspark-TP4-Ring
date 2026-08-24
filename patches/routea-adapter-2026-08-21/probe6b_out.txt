@@ -1,0 +1,46 @@
+=== [A2] repack structure analysis ===
+  row-pattern preserved as rows? False | cols? False
+  repacked first 32 bytes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  w4a16.w13 shape/int32 dims: (1, 256, 2048)
+  multiset equal: True
+    orig[0] (row0,col0) -> repacked idx [0, 21, 41]
+    orig[1] (row0,col1) -> repacked idx [1, 44, 77]
+    orig[2] (row0,col2) -> repacked idx [2, 18, 34]
+    orig[3] (row0,col3) -> repacked idx [3, 19, 35]
+    orig[4] (row0,col4) -> repacked idx [4, 24, 45]
+    orig[5] (row0,col5) -> repacked idx [5, 25, 97]
+    orig[6] (row0,col6) -> repacked idx [6, 22, 75]
+    orig[7] (row0,col7) -> repacked idx [7, 94, 110]
+  (see b12x packing source for definitive layout)
+
+=== [B] full-MoE A/B ===
+routeA scale derivation: 13.1 ms | mem 101 MB/layer
+     M |  M_e~ |   b12x ms | routeA ms |  speedup | rel_out
+  1024 |    24 |      4.88 |     25.05 |    0.19x | 1.42e+00
+  2048 |    48 |      5.97 |     25.17 |    0.24x | 1.42e+00
+  4096 |    96 |     10.03 |     26.00 |    0.39x | 1.42e+00
+  8192 |   192 |     14.64 |     37.63 |    0.39x | 1.42e+00
+ 16384 |   384 |     27.94 |     65.81 |    0.42x | 1.42e+00
+
+== PROBE6B DONE ==
+===REPACK_SRC===
+/usr/local/lib/python3.12/dist-packages/b12x/integration/arena.py:78:    w13_layout: str = "w13"
+/usr/local/lib/python3.12/dist-packages/b12x/integration/arena.py:102:        object.__setattr__(self, "w13_layout", str(self.w13_layout).lower())
+/usr/local/lib/python3.12/dist-packages/b12x/integration/arena.py:148:            w13_layout=self.w13_layout,
+/usr/local/lib/python3.12/dist-packages/b12x/integration/arena.py:553:                    w13_layout=caps.w13_layout,
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:278:    w13_layout: str = "w13"
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:286:        object.__setattr__(self, "w13_layout", _normalize_w13_layout(self.w13_layout))
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:294:    w13_layout: str = "w13"
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:305:        object.__setattr__(self, "w13_layout", _normalize_w13_layout(self.w13_layout))
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:407:    w13_layout: str = "w13"
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:435:        object.__setattr__(self, "w13_layout", _normalize_w13_layout(self.w13_layout))
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:481:            w13_layout=self.caps.w13_layout,
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:528:        w13_layout: str = "w13",
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:555:            w13_layout=w13_layout,
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:584:    w13_layout: str = "w13"
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:787:def _normalize_w13_layout(w13_layout: str) -> str:
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:789:        return _W13_LAYOUTS[w13_layout.lower()]
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:792:            "w13_layout must be one of 'w13'/'w31' (or the 'up_gate'/'gate_up' "
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:793:            f"aliases), got {w13_layout!r}"
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:1318:    w13_layout: str = "w13",
+/usr/local/lib/python3.12/dist-packages/b12x/integration/tp_moe.py:1332:        w13_layout = _normalize_w13_layout(w13_layout)

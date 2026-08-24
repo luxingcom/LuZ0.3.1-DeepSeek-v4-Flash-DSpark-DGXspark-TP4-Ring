@@ -1,0 +1,10 @@
+[restart] 启动 head (rank0)
+[restart] 轮询 TCPStore :25999 (≤600s)
+[restart] TCPStore 就绪, 错峰启动 workers (15s 间隔)
+[restart] rank1 (node01) 已下发
+[restart] rank2 (node01) 已下发
+[restart] rank3 (node01) 已下发
+[restart] 等待就绪: 'Application startup complete' (≤20min)
+[restart] RUN READY (mode=0)
+(Worker_TP0 pid=177) INFO 08-21 05:35:41 [mxfp4.py:426] Using 'B12X_MXFP4' Mxfp4 MoE backend.
+(EngineCore pid=132) INFO 08-21 05:38:21 [kv_cache_utils.py:2177] GPU KV cache size: 5,999,888 tokens

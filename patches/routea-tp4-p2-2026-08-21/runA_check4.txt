@@ -1,0 +1,8 @@
+vllm-tp4-rank0 Up 8 minutes (healthy)
+===HEADLOG===
+(Worker_TP0 pid=177) INFO 08-21 04:31:00 [mxfp4.py:426] Using 'B12X_MXFP4' Mxfp4 MoE backend.
+(Worker_TP0 pid=177) INFO 08-21 04:32:26 [default_loader.py:430] Loading weights took 83.66 seconds
+(Worker_TP0 pid=177) INFO 08-21 04:32:35 [b12x_mxfp4_moe.py:465] Prewarmed B12X route-pack capacities (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096) on cuda:0 (experts=256, topk=6)
+(Worker_TP0 pid=177) INFO 08-21 04:33:01 [default_loader.py:430] Loading weights took 16.64 seconds
+(EngineCore pid=132) INFO 08-21 04:33:46 [kv_cache_utils.py:2177] GPU KV cache size: 6,076,343 tokens
+(APIServer pid=1) INFO:     Application startup complete.

@@ -1,0 +1,7 @@
+[check] ✅ 全部通过
+[check] ✅ 全部通过
+[check] ✅ 全部通过
+[check] ✅ 全部通过
+===CLUSTER-STATE===
+vllm-tp4-rank0 Up 12 minutes (healthy)
+0

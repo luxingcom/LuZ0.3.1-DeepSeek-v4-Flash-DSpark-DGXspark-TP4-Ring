@@ -1,0 +1,18 @@
+=== [1] W4A4 wrapper correctness vs torch reference (real weights) ===
+W4A4 wrapper vs torch-ref (real W, NVFP4-A): rel=1.41e+00 [FAIL]  (gate/up split = first-half gate)
+
+=== [2] corrected A/B (separate tensors) ===
+     M |  w4a16 ms |   w4a4 ms |  speedup | rel_out
+     1 |     0.360 |     0.058 |    6.17x | 1.64e+00
+     8 |     0.669 |     0.728 |    0.92x | 1.43e+00
+    64 |     2.969 |     3.578 |    0.83x | 1.41e+00
+   256 |     3.976 |     5.023 |    0.79x | 1.40e+00
+  1024 |     4.755 |     5.574 |    0.85x | 1.40e+00
+  2048 |     5.945 |     6.241 |    0.95x | 1.40e+00
+  4096 |    10.065 |     7.614 |    1.32x | 1.40e+00
+  8192 |    14.611 |    11.087 |    1.32x | 1.40e+00
+ 16384 |    27.855 |    18.286 |    1.52x | 1.40e+00
+
+=== [3] B12xMoEWrapper.run signature (swiglu limit support?) ===
+(x: torch.Tensor, w1_weight: torch.Tensor, w1_weight_sf: torch.Tensor, w2_weight: torch.Tensor, w2_weight_sf: torch.Tensor, token_selected_experts: torch.Tensor, token_final_scales: torch.Tensor, *, w1_alpha: torch.Tensor, w2_alpha: torch.Tensor, fc2_input_scale: Optional[torch.Tensor] = None) -> torch.Tensor
+== PROBE16 DONE ==

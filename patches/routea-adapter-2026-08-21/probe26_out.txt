@@ -1,0 +1,3 @@
+W4A4(wrapper, fork-exact construction) vs W4A16(b12x, nolimit): rel=1.547e+00
+(expected ~1e-2 if only activation quant differs; ~1.4 if layout mismatch)
+== PROBE26 DONE ==

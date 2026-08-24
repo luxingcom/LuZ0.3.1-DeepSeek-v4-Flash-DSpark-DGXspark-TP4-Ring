@@ -1,0 +1,8 @@
+== kernel2 v15 verify ==
+7/7 byte-exact PASS
+== k2 bandwidth T=65536 4680B/token ==
+v15: 10.6 GB/s; v11: 53.4 GB/s; v12.1(round7): 18.8 GB/s
+== v14 ==
+CompilationError: module-level _GROUP non-constexpr
+== paged v11 ==
+5/5 PASS (clean rerun)

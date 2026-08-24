@@ -1,0 +1,11 @@
+== kernel1 v15 verify (8 cases) ==
+8/8 PASS, max_abs_err=0.000000
+== as-shipped crash ==
+RuntimeError: shape [4096, 2048] is invalid for input of size 16777216
+== gemm_only bench ==
+GEMM-only: 26.7-81.4 TFLOPS; full-op: 7.2-14.9
+== k1 v15 SASS ==
+        /*1b70*/                   HMMA.16816.F32.BF16 R64, R96, R16, R64 ;
+        /*1b90*/                   HMMA.16816.F32.BF16 R60, R96, R12, R60 ;
+        /*1bb0*/                   HMMA.16816.F32.BF16 R36, R96, R8, R36 ;
+HMMA.16816.F32.BF16 count: 64; TCGEN05: 0; e2m1: 0; FFMA: 0

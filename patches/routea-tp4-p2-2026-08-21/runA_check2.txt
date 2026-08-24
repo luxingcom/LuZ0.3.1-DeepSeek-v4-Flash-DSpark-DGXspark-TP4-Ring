@@ -1,0 +1,14 @@
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/vllm/engine/arg_utils.py", line 2733, in add_cli_args
+    load_general_plugins()
+  File "/usr/local/lib/python3.12/dist-packages/vllm/plugins/__init__.py", line 90, in load_general_plugins
+    func()
+TypeError: 'module' object is not callable
+[04:10:50] [诊断] rank1 容器最近日志:
+Error response from daemon: No such container: vllm-tp4-rank1
+[04:10:50] [诊断] rank2 容器最近日志:
+Error response from daemon: No such container: vllm-tp4-rank2
+[04:10:50] [诊断] rank3 容器最近日志:
+Error response from daemon: No such container: vllm-tp4-rank3
+===PS===
+===HEADLOG===

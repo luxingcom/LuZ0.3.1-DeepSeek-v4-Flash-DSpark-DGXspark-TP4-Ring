@@ -1,0 +1,4 @@
+[run] prompt 5: 69 prompt-lp, 48 gen-lp, text='kus尷nels burujcbKaginharian-saluran statisticheschriftreiben'
+[run] prompt 6: 36 prompt-lp, 48 gen-lp, text=' talagsikoa.”#ACC550 dévelージ económicshtt://www.youtubeaplen'
+[run] wrote /work/lp_v4.json
+V4(MIN_M=600 全 W4A16) vs V0: prefill bitwise=True, gen text 一致=True

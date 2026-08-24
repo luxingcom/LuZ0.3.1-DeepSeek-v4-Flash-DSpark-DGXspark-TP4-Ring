@@ -1,0 +1,13 @@
+== kernel2 v17 pytest ==
+8/8 PASS (byte-exact, shipped test)
+== v17 vs v11 GB/s (4680B/token) ==
+T=256:   v11 50.8  v17 75.6   (1.49x)
+T=1024:  v11 56.8  v17 262.3  (4.62x)
+T=4096:  v11 61.0  v17 248.9  (4.08x)
+T=16384: v11 58.8  v17 227.0  (3.86x)
+T=65536: v11 55.2  v17 194.3  (3.52x)
+== v17 配置归因 T=65536 (kernel-only) ==
+BLOCK_G=32 TPP=1 warps=1: 213.5 GB/s (best)
+BLOCK_G=32 TPP=2: 212.1; BLOCK_G=16 TPP=4: 199.0; BLOCK_G=8 TPP=8: 169.1
+== 验收 ==
+大 T 194-262 GB/s >= 120 达标，理论 273 的 71-96%

@@ -1,0 +1,33 @@
+===== bench_A.json =====
+  ttft_4k: median=0.384s  all=[2.388, 0.383, 0.384, 0.386, 0.381]
+  ttft_16k: median=1.585s  all=[8.636, 1.583, 1.585]
+  ttft_2k: median=0.182s  all=[1.209, 0.26, 0.182, 0.18, 0.177]
+  decode_1x256: ttft=0.107s total=4.337s decode_tps=20.81
+  decode_1x256: ttft=0.102s total=4.319s decode_tps=20.87
+  decode_1x256: ttft=0.099s total=4.311s decode_tps=20.9
+  decode_12x128: total=7.826s agg_tps=79.86
+  decode_12x128: total=7.952s agg_tps=81.61
+  logprob: sum=-2629.4 over 3870 tokens (553/prompt), errors=0
+  needle_64k: pass=True pos=mid latency=36.5s resp='</think>X7Q-95-Bravo'
+  needle_64k: pass=False pos=late latency=36.7s resp=' \n</div>\n\n### Our expected answer:\nX7Q-95-Bra'
+  needle_128k: pass=False pos=mid latency=64.1s resp=''
+===== bench_C.json =====
+  ttft_4k: median=0.442s  all=[6.887, 0.449, 0.442, 0.438, 0.441]
+  ttft_16k: median=1.791s  all=[10.483, 1.791, 1.739]
+  ttft_2k: median=0.268s  all=[2.628, 0.453, 0.264, 0.267, 0.268]
+  decode_1x256: ttft=0.142s total=4.886s decode_tps=17.92
+  decode_1x256: ttft=0.131s total=3.835s decode_tps=18.09
+  decode_1x256: ttft=0.127s total=0.837s decode_tps=16.91
+  decode_12x128: total=14.451s agg_tps=36.33
+  decode_12x128: total=8.404s agg_tps=64.85
+  logprob: sum=-2643.8 over 3870 tokens (553/prompt), errors=0
+===== bench_RB.json =====
+  ttft_4k: median=0.394s  all=[2.345, 0.394, 0.396, 0.388, 0.384]
+  ttft_16k: median=1.608s  all=[8.652, 1.601, 1.608]
+  ttft_2k: median=0.186s  all=[1.222, 0.244, 0.186, 0.184, 0.184]
+  decode_1x256: ttft=0.101s total=4.326s decode_tps=20.83
+  decode_1x256: ttft=0.096s total=4.331s decode_tps=20.78
+  decode_1x256: ttft=0.093s total=4.326s decode_tps=20.79
+  decode_12x128: total=7.929s agg_tps=78.07
+  decode_12x128: total=7.751s agg_tps=82.83
+  logprob: sum=-2612.9 over 3870 tokens (553/prompt), errors=0
