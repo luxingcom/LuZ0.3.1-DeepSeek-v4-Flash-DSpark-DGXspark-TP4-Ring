@@ -10,9 +10,9 @@
 | `<KEY_PREFIX_OLD>` / `<KEY_PREFIX_NEW>` | API key 前缀（轮换前后） | key 轮换窗口报告 |
 | `<API_KEY>` | API key 值 | `--api-key`、`VLLM_API_KEY` |
 | `<BEARER>` | Bearer token | 网关/监控鉴权 |
-| `<USER>` | 内部用户名 | `liuxiaoya` 等 |
-| `<INSTALL_DIR>` | 内部安装目录 | `/opt/aicad-prod` |
-| `<MODELS_DIR>` / `<HOME_DIR>` | 模型/用户主目录 | `/home/<USER>/models`、`/data/models` |
+| `<USER>` | 内部用户名 | 集群操作账号 |
+| `<INSTALL_DIR>` | 内部安装目录 | 应用部署根目录 |
+| `<MODELS_DIR>` / `<HOME_DIR>` | 模型/用户主目录 | 用户 home 与模型目录 |
 | `<NODE_IP>` | 内网 IP（端口保留） | `192.168.x.x`、`10.x.x.x` |
 | `node0X` | 主机名 | `dgxspark01`~`dgxspark04` |
 
