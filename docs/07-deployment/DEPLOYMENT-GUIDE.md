@@ -79,7 +79,7 @@ for h in node02 node03 node04; do ssh $h "systemctl is-active vllm-tp4-worker.se
 |---|---|
 | OS | Ubuntu Server（aarch64） / DGX 官方基座 |
 | 驱动 + CUDA | **CUDA 13.0 运行时**（容器内 `/usr/local/cuda`）；nvcc wrapper 将 `sm_120f` → `sm_121a`（`<INSTALL_DIR>/envs/nvcc_wrapper.py`） |
-| NCCL | **2.30.7 ring-only 定制**（环序强制补丁；`NCCL_ALGO=RING` + 4 通道 MIN/MAX=4）。库以 md5 + 构建来源描述发布，**二进制不随仓库**（见 §3.4） |
+| NCCL | **2.30.7 ring-only 定制**（环序强制补丁；`NCCL_ALGO=RING` + 4 通道 MIN/MAX=4）。构建产物随仓库（`patches/ringonly-v5-2026-08-23/libnccl.so.2.30.7`，md5 2b8669ec），patch 与构建记录同目录（§3.4） |
 | 容器运行时 | Docker + 本地 registry `REGISTRY_HOST:5000` |
 | 编排 | systemd（head/worker service + healthcheck timer）+ `start_tp4_cluster.sh`（R12） |
 
@@ -98,7 +98,7 @@ for h in node02 node03 node04; do ssh $h "systemctl is-active vllm-tp4-worker.se
 
 ### 3.1 镜像构成总览
 
-LuZ0.3.1 = **基座镜像 + 6 类组装层**。组装材料在本仓库 `kernels/`、`patches/`、`scripts/` 内（含 md5 记录）；其中 `libncclpin.so` 二进制**不随仓库**（按源码 + md5 构建，§3.4），ringonly 提供补丁 + 构建记录 + 构建产物参考副本（`patches/ringonly-v5-2026-08-23/`，md5 2b8669ec）。
+LuZ0.3.1 = **基座镜像 + 6 类组装层**。组装材料在本仓库 `kernels/`、`patches/`、`scripts/` 内（含 md5 记录）；其中 `libncclpin.so` 二进制**随仓库**（`patches/libncclpin/libncclpin.so`，md5 ce43c688，§3.4），ringonly 提供补丁 + 构建记录 + 构建产物参考副本（`patches/ringonly-v5-2026-08-23/`，md5 2b8669ec）。
 
 | # | 层 | 内容/来源 | 完整性（md5） | 载体 |
 |---|---|---|---|---|
@@ -107,7 +107,7 @@ LuZ0.3.1 = **基座镜像 + 6 类组装层**。组装材料在本仓库 `kernels
 | 3 | **overlay-wsdedup**（池补丁） | `patches/server-overlay/flashinfer_b12x_moe.py`（`_get_pooled_wrapper` 几何键共享池） | md5 `8f88555a0fc7e330ee51255c643796bc` | bind-mount / bake 到 vllm experts 路径 |
 | 4 | **flashinfer-0.6.16 overlay** | rebased-experimental 定制树（0.6.16 官方 wheel + 5 fork 补丁 + 58 fork 文件） | tarball md5 `7aac3857220eb5865a70a9ee50e7b8a8` | 目录级 bind-mount / bake 到 `dist-packages/flashinfer` |
 | 5 | **overlay-mask**（api_utils 脱敏） | `patches/server-overlay/api_utils.py`（对齐上游 PR#89，掩码 api-key 防落日志） | md5 `d9c7aeb62458848c5547b02c43e4133a` | bind-mount / bake 到 serve utils 路径 |
-| 6 | **libncclpin**（shim v8） | CPU 绑核 shim（NCCL→8-9 / EngineCore→15-19） | md5 `ce43c688c5164ac7efd5105c94fdab77` | `LD_PRELOAD`，**二进制不随仓库**（§3.4 源码构建） |
+| 6 | **libncclpin**（shim v8） | CPU 绑核 shim（NCCL→8-9 / EngineCore→15-19） | md5 `ce43c688c5164ac7efd5105c94fdab77` | `LD_PRELOAD`，二进制随仓库（`patches/libncclpin/`） |
 | 7 | **ringonly 库**（NCCL 2.30.7 环序强制） | `patches/ringonly-v5-2026-08-23/`（v5-incremental.patch + 构建记录 + 构建产物参考副本） | v5 md5 `2b8669eceebd633120cd8053a5be3089`（生产 ref `2be94172…`） | `LD_PRELOAD` |
 
 > 基座镜像与 bake 镜像的 digest 均为占位符（`<BASE_IMAGE_DIGEST>` / `<BAKE_IMAGE_DIGEST>`）：发布副本不发布具体内容哈希值，现场以 `docker inspect --format '{{.RepoDigests}}'` 解析。
