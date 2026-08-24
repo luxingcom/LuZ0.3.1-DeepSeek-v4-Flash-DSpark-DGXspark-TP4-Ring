@@ -1,12 +1,3 @@
-﻿placeholder,description,count_present
-<PASSWORD>,sudo password,16
-<KEY_PREFIX_OLD>,old API key prefix,19
-<KEY_PREFIX_NEW>,new API key prefix,9
-<API_KEY>,api key,130
-<BEARER>,bearer token,10
-<USER>,internal username,167
-<INSTALL_DIR>,install dir,728
-<MODELS_DIR>,models dir,96
-<HOME_DIR>,home dir,0
-<NODE_IP>,internal ip,754
-node01,hostname (all 4 mapped),577
+﻿regex,placeholder,description,count_replaced
+dgxspark0[1-4],node0X,hostname node,6
+c3b4de54,<KEY_PREFIX_OLD>,old API key prefix,5

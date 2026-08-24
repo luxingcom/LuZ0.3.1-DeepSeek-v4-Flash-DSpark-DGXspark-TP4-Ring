@@ -13,7 +13,9 @@ __pycache__/
 
 # staging of unredacted server fetch (organized copies already in repo)
 _server_fetch/
-
+_head_scan*/
+# private redaction patterns (contains real secrets - never commit)
+redact-patterns.json
 # scratch verification logs
 _*.txt
 _build_manifest.txt
