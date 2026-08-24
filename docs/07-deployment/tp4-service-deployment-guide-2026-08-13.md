@@ -53,7 +53,7 @@
 | aicad 应用栈 | neo4j/redis/postgres/minio/dashboard/aicad-fw 等 | 运行中（审核新发现，待逐一建档） | 02 registry catalog | — | 01/02 |
 
 ### 2.2 仓库管理
-- **权威源**：02 `<NODE_IP>:5000`（旧 `.58` 已废弃；四机 daemon.json insecure-registries 含新旧地址）
+- **权威源**：02 `<NODE_IP>:5000`（旧节点末段已废弃；四机 daemon.json insecure-registries 含新旧地址）
 - 拉取后**保留 registry tag**，运行 tag 另打（避免直接引用远端导致重拉）
 - 测试镜像（archi-test 等）用后即删（rmi），避免积压（曾回收 98.9G）
 - **未文档镜像仓**：registry catalog 实测含 20+ 未文档镜像仓（minio/neo4j/chroma/pgvector/comfyui/vllm-gb10/embed-gpu 等），目录待逐一建档（P2）
@@ -72,10 +72,10 @@
 ### 3.2 节点选择与角色
 | 节点 | IP（管理/RoCE） | 角色 | 存储 |
 |---|---|---|---|
-| 01 | .186 / 10.100.136/137 + 10.100.140/141 | head（rank0）+ 数据源 | 3.6T |
-| 02 | .187 / 10.100.136/137 + <NODE_IP>/30 + <NODE_IP>/30 | worker(rank1) + 监控 + registry + 数据源 | 3.6T |
-| 03 | .188 / 10.100.138/139 + 10.100.140/141 | worker(rank3) + embed | 916G |
-| 04 | .189 / 10.100.138/139 + <NODE_IP>/30 + <NODE_IP>/30 | worker(rank2) + embed | 916G |
+| 01 | <NODE_IP> / <RING_SUBNET> + <RING_SUBNET> | head（rank0）+ 数据源 | 3.6T |
+| 02 | <NODE_IP> / <RING_SUBNET> + <NODE_IP>/30 + <NODE_IP>/30 | worker(rank1) + 监控 + registry + 数据源 | 3.6T |
+| 03 | <NODE_IP> / <RING_SUBNET> + <RING_SUBNET> | worker(rank3) + embed | 916G |
+| 04 | <NODE_IP> / <RING_SUBNET> + <NODE_IP>/30 + <NODE_IP>/30 | worker(rank2) + embed | 916G |
 
 > 环序 **01(0)→02(1)→04(2)→03(3)→01**（NODE_RANK 以 systemd 实测为准，见 §3.5）。
 
@@ -158,13 +158,13 @@ spec:
           03 ════════ 04
 
   环网 01-02-04-03-01（四边全连，每边双链路；每机 2 OSFP = 4 逻辑口全配 IP）
-  ├ 01↔02：10.100.136/137
+  ├ 01↔02：<RING_SUBNET>
   ├ 02↔04：<NODE_IP>/30 + <NODE_IP>/30（TP2 遗留段）
-  ├ 04↔03：10.100.138/139
-  └ 03↔01：10.100.140/141
-  管理网 <NODE_IP>~189（2.5GbE，四机实测 speed=2500）——控制面/SSH/API/监控
+  ├ 04↔03：<RING_SUBNET>
+  └ 03↔01：<RING_SUBNET>
+  管理网 <NODE_IP>~<NODE_IP>（2.5GbE，四机实测 speed=2500）——控制面/SSH/API/监控
 ```
-- **环网 L3 闭合**（每边双链路）：01↔02（10.100.136/137）、02↔04（<NODE_IP>/30 + <NODE_IP>/30，TP2 遗留段）、04↔03（10.100.138/139）、03↔01（10.100.140/141）
+- **环网 L3 闭合**（每边双链路）：01↔02（<RING_SUBNET>）、02↔04（<NODE_IP>/30 + <NODE_IP>/30，TP2 遗留段）、04↔03（<RING_SUBNET>）、03↔01（<RING_SUBNET>）
 - **RoCE**：GID_INDEX=3；**MTU=9000（jumbo）**
 - 数据面 10.20.0.x 为 TP2 遗留段（环网 4 边中 02↔04 边沿用该段）；对角无直连（RDMA 2 跳已放弃）
 
@@ -175,7 +175,7 @@ spec:
 | NCCL 数据面 | 环邻对（RoCE 直连，PEER_HCA 对口） | IB/RoCE |
 | 推理 API | 客户端 → 186:8001 | 8001 |
 | 网关 | 客户端 → 02:4000 → 8001 | 4000 |
-| Embed | 03/04:8022（litellm 池 .188/.189） | 8022 |
+| Embed | 03/04:8022（litellm 池 <NODE_IP>/<NODE_IP>） | 8022 |
 | 监控 | Prometheus 8191 ← dcgm 9400/node 9100 四机；alertmanager 02:9093；02 Grafana 3000 | 8191/9400/9100/9093/3000 |
 | 权重 | NFS 01→03（<NODE_IP>，源 `/home/<USER>/models/deepseek-v4-flash-0731`）、02→04（<NODE_IP>，同源） | 2049 |
 | aicad 应用栈 | Neo4j（01/02）、Redis（01/02）、Postgres（02）、MinIO（01/02）、aicad-fw、dashboard、02 应用 | 7474/7687、6379、8082(→5432)、19000/50081、25000、11000、8003 |
@@ -261,7 +261,7 @@ curl -s -H "Authorization: Bearer <VLLM_API_KEY>" <NODE_IP>:8001/v1/models   # �
 | litellm 网关 | 统一入口/并发控制 | docker（02 :4000） | default_max_parallel_requests=12 | 停=API 入口断，直连 8001 可用 |
 | NCCL 补丁库 | 纯环网必需 | LD_PRELOAD 常驻 | PEER_HCA 双 dev | 缺失=TP4 无法组网 |
 | shim 绑定 | 隔离核/延迟保障 | LD_PRELOAD 常驻 | 目标 8-9/15-19 | 缺失=线程落 5-19 |
-| Grafana/Prom | 监控 | 01/02 双 Grafana（去重待执行，保 02 权威）/ 02 Prom | 数据源 .187:8191 | 停=无监控，不影响推理 |
+| Grafana/Prom | 监控 | 01/02 双 Grafana（去重待执行，保 02 权威）/ 02 Prom | 数据源 <NODE_IP>:8191 | 停=无监控，不影响推理 |
 | NFS | 权重集中化 | 01/02 export + 03/04 mount | ro,hard,timeo=600,nconnect=4 | 断=03/04 权重不可读（软链兜底，删除决策待裁决 P1） |
 
 - **NFS 兜底**：目录实际为 `deepseek-v4-flash-0731.local-backup`（03=156G + 04=156G，共 312G）；**删除决策待裁决（P1）**——删除后 01/02 任一 NFS 故障 → 对应 worker 断权 → TP4 全链断、无本地兜底
@@ -417,7 +417,7 @@ curl -s -H "Authorization: Bearer <VLLM_API_KEY>" <NODE_IP>:8001/v1/models   # m
 - sshd 显式收敛（禁密码认证 / 禁 root 登录）
 - 双 Grafana 去重（保 02 权威）
 - Neo4j/MinIO 端口绑管理网白名单收敛
-- Prometheus job 名/标签清理（旧 .55/.58/.59/.60 命名）与失效抓取目标
+- Prometheus job 名/标签清理（旧节点末段命名）与失效抓取目标
 
 ---
 

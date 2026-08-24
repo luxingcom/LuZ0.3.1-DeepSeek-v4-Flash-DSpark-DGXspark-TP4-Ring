@@ -25,14 +25,14 @@
 | **机型/架构** | DGX Spark 4 节点 / GB10 / sm_121a / Triton 3.6.0 / torch 2.11+cu130 |
 | **生产容器镜像** | `dspark-vllm-gx10:0.2.1-v026.0`，vLLM 0.26，flaṡhinfer 0.6.15 |
 | **生产容器** | `vllm-tp4-rank0`（01 head）+ rank1~3（02/03/04 worker） |
-| **节点/角色/IP** | 01=head `<NODE_IP>`；02 worker `.187`；03 worker `.188`；04 worker `.189` |
-| **网络** | 环网 4 段：`10.20.0.x`（控制面） + RoCE 数据面（`10.100.x.x`/`10.20.0.x`/`10.100.136~139`）；MTU 9000；iperf3 99~110G、重传≈0 |
+| **节点/角色/IP** | 01=head `<NODE_IP>`；02 worker `<NODE_IP>`；03 worker `<NODE_IP>`；04 worker `<NODE_IP>` |
+| **网络** | 环网 4 段：`10.20.0.x`（控制面） + RoCE 数据面（`10.100.x.x`/`10.20.0.x`/`<RING_SUBNET>`）；MTU 9000；iperf3 99~110G、重传≈0 |
 | **NCCL** | RING-only 补丁 `nccl-ringonly-v2.30.7-patch.diff`；`libnccl.so.2.30.7` MD5=`b7784b49`（v3 双口，**旧文档 `4cc43e3b` 已作废**） |
 | **shim** | `libncclpin.so` v8 MD5=`ce43c688`（布局 `NCCL→8-9 / EngineCore→15-19`；隔离核 `isolcpus=8-9`） |
 | **SSH** | `ssh -o BatchMode=yes node01 "docker exec ..."`；root 免密 sudo（NOPASSWD） |
 | **⛔ 持久化边界** | `/vllm-workspace/` 是**容器内部目录，未挂载宿主机 → 容器重建即丢**；宿主机持久目录 `<INSTALL_DIR>/`（`lib/`、`models/`、`envs/`、`scripts/` 已挂载进容器） |
 | **生产状态** | 4 rank 全程 healthy、GPU 0%、**未恢复**（按用户要求）；当前不承载推理 |
-| **监控** | Grafana 数据源 01→`http://.187:8191`（02 Prom）；scrape 5s；面板按 node 分组 |
+| **监控** | Grafana 数据源 01→`http://<NODE_IP>:8191`（02 Prom）；scrape 5s；面板按 node 分组 |
 
 ### 1.1 科迪 S3 网段口径问题（接手必清）
 - 控制面（TCPStore 25999 + vLLM 分布式）走**管理网镜像** `<NODE_IP>`（`start_tp4_cluster.sh:31` `MASTER_ADDR`）；RoCE 数据面走环网 `10.100.x / 10.20.0.x`。
@@ -104,12 +104,12 @@
 |---|---|---|---|---|
 | H1 | 科迪 | shim 二进制为剥离产物，无法静态审计绑核；仅靠 SHA 判断可能有 MD5 相同语义不同的替换 | 提供带调试信息 v8 源码 + 可复现 MD5 构建产物；签名的 sha256 + 部署表注各机备份锚点 | 交付 |
 | H2 | 科迪 | 防火墙默认 `.env` `:INPUT ACCEPT`（默认放行新进非 25000 端口），监控栈 3000/8191/Prom、registry 5000 暴露 | 评估 `:INPUT DROP` 白名单化；至少先给 3000/8191/9093 加 IP 白名单 | SRE |
-| H3 | 科迪 | kit 内 `prometheus.yml` 仍是旧 TP2 拓扑（.58/.60），未含 03/04 新节点，与生产不一致 | 同步为四机 186/187/188/189 + vllm rank 聚合；明确 .187:8191 权威配置源 | SRE/Monitor |
+| H3 | 科迪 | kit 内 `prometheus.yml` 仍是旧 TP2 拓扑（旧节点末段），未含 03/04 新节点，与生产不一致 | 同步为四机 <NODE_IP>（186/187/188/189 末段）+ vllm rank 聚合；明确 <NODE_IP>:8191 权威配置源 | SRE/Monitor |
 | H4 | 科迪 | SSH 编排无 `StrictHostKeyChecking`/超时；worker 无引号复合命令解析风险 | `ssh -o ConnectTimeout -o StrictHostKeyChecking=accept-new`；here-doc/base64 传参 | SRE |
 | H5 | 科迪 | `start_tp4_cluster.sh` 无 `set -e`，关键步骤无显式失败语义，可能「假成功」 | 对 TCPStore 就绪/worker 容器/startup complete 用显式返回值 + 统一 exit | SRE |
 | H6 | 科迪 | `ncclIbPeerHcaOverride` 用 2048 固定缓冲 + `atoi` 无校验 + 精确匹配 | 动态长度解析；`atoi` 校验；dev 匹配 prefix 兜底 + WARN；标注长度上限 | 交付 |
 | **R4** | 雷克斯 | **UMA 内存耗尽复发（08-19 根因未根除）**：生产 util 回到 0.80，03/04 仅 ~2.5G 头寸；conc3×长上下文并发可能再触发 NCCL 超时+节点冻死 | 恢复 0.70 或保留 0.80+硬约束；内存 avail<2G 告警 + 后手 0.65/降 max-num-seqs；事故格单独复验 | SRE/**用户裁决 0.70/0.80** |
-| **R5** | 雷克斯 | 监控告警覆盖盲区：job 名旧 .55/.58/.59/.60；vllm 抓取含 188:8001（worker 无 API 口）；节点卡死时 Prom 中断 | 清理旧命名与失效目标；为 avail 内存/KUBE/UMA/NCCL 超时/GPU 0% 加显式告警；node 卡死视为 SEV 信号 | SRE/Monitor |
+| **R5** | 雷克斯 | 监控告警覆盖盲区：job 名旧节点末段；vllm 抓取含 worker（无 API 口）；节点卡死时 Prom 中断 | 清理旧命名与失效目标；为 avail 内存/KUBE/UMA/NCCL 超时/GPU 0% 加显式告警；node 卡死视为 SEV 信号 | SRE/Monitor |
 | **R6** | 雷克斯 | 配置漂移历史复发（rank 映射颠倒、MTU/shm/LD_PRELOAD 多处失准） | 交接以运行态实测为准；关键锚点 NCCL=`b7784b49`、shim v8=`ce43c688` | 全团队 |
 | **R7** | 雷克斯 | monitor 曾在停机窗口自动拉起 rank0，误伤生产 | 停机 SOP 固化：**先 stop timer+service → 再停容器 → 完成后恢复**（写入事故预案） | SRE |
 
@@ -150,7 +150,7 @@
 | # | 任务 | 完成判据 | 参考脚本/文件 |
 |---|---|---|---|
 | **P1-1** | 防火墙默认 ACCEPT→DROP + 监控栈加 IP 白名单（H2） | 白名单化后外部仅白名单可达，25000 链不受影响 | `configs/iptables/rules.v4` |
-| **P1-2** | 同步 kit `prometheus.yml` 到 TP4 四机拓扑；确认 8191 retention/ disk/ 告警闭环（H3/M5） | kit 与生产 8191 比对一致；4 条告警规则在 .187:8191 均加载 | `configs/monitoring/prometheus.yml` |
+| **P1-2** | 同步 kit `prometheus.yml` 到 TP4 四机拓扑；确认 8191 retention/ disk/ 告警闭环（H3/M5） | kit 与生产 8191 比对一致；4 条告警规则在 <NODE_IP>:8191 均加载 | `configs/monitoring/prometheus.yml` |
 | **P1-3** | 按 HANDOFF §3 P0 落 routeA 到 `<INSTALL_DIR>/scripts/nvfp4/`（交付/QA，=P0-P） | 四机重建后 import 跑通 smoke | `nvfp4_4w4a_mmaf.py` |
 | **P1-4** | 生产性能简测 + **200 TFLOPS 冲刺**（G2/F4a）：A 量化融合/CUDA Graph/cutlass backend；加 200 断言 | `bench_big.py` 峰值≥200 TFLOPS 且 exit 0；否则单独立项决策 200 是否硬门槛（**用户裁决**） | `tests/bench_big.py` |
 | **P1-5** | kernel② v17 四节点分发 + 切换调用点 + md5 校验（R3/paged） | 四个节点 v17 文件 md5 一致；调用点切 `_v17_triton`；8/8 逐字节 + 带宽达标 | `docs/runbook-kernel2-v17.md` |
@@ -229,7 +229,7 @@
 ### 阶段 A–B：环境 / 镜像 / 补丁
 | 项 | 检查 | 判据 | 脚本/命令 | 优先级 |
 |---|---|---|---|---|
-| A1 | 4 机在线 | 4 ping 通 | `ping <NODE_IP>~189` | 🔴 |
+| A1 | 4 机在线 | 4 ping 通 | `ping <NODE_IP>~<NODE_IP>` | 🔴 |
 | A2 | 时区一致 | UTC（01 需先修漂移） | `timedatectl` | 🔴 |
 | A3 | 隔离核 | cmdline 含 `isolcpus=8-9` | `cat /proc/cmdline` | 🔴 |
 | A4 | 内存头寸 | 03/04 avail≥4G | `free -g` | 🔴 |

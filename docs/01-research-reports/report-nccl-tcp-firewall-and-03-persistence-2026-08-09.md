@@ -10,7 +10,7 @@
 
 - **判定①（部分符合，有条件确认）**：数据面放行 `<NODE_IP>/24` TCP 是 TP2 多节点 NCCL **必需**（NCCL 控制面走 TCP 且当前脚本把 `NCCL_SOCKET_IFNAME` 指向数据面）；但这是对"内网纯 RoCE（数据面 0 TCP）"的**语义削弱**，且当前放行范围偏宽（整 /24 而非对端主机 IP）并**漏掉 <NODE_IP>/24 子网**。
 - **判定②（有更优方案）**：将 `NCCL_SOCKET_IFNAME` 从数据面改为管理口 `enP7s7`（与本集群 nccl-tests matrix **已验证通过**的配置一致），NCCL 控制 TCP 即可走管理网、数据面恢复纯 RoCE → 可撤销数据面 TCP 放行、恢复原语义。NCCL 无独立 `NCCL_BOOTSTRAP_IF` 变量，控制面接口选择就是 `NCCL_SOCKET_IFNAME`。
-- **判定③（风险）**：数据面 TCP 放行后，<NODE_IP>/24 间任意 TCP（含误用 bulk，如 scp/rsync 走数据面 IP）可重回 RoCE 链路，重演 benchmark 实测的 **+128% 延迟**（60% TCP 背景 → 7.46µs vs 基线 3.27µs）。缓解 = 收窄到对端主机 IP + 覆盖 136/137 双子网 + bulk 约定走管理网。
+- **判定③（风险）**：数据面 TCP 放行后，<NODE_IP>/24 间任意 TCP（含误用 bulk，如 scp/rsync 走数据面 IP）可重回 RoCE 链路，重演 benchmark 实测的 **+128% 延迟**（60% TCP 背景 → 7.46µs vs 基线 3.27µs）。缓解 = 收窄到对端主机 IP + 覆盖 <RING_SUBNET> 双子网 + bulk 约定走管理网。
 - **03 持久化复验**：**全部通过/符合预期**——isolcpus=16-19 ✅、netfilter-persistent（文件+服务）✅（规则内容需 sudo 复核）、mlnx-qos 未装=预期 ✅、MTU 9000 ✅、sysctl 99-sec ✅、embed 8022 重启后自动恢复 ✅、litellm 池 2 上游 03/04 均在 ✅。
 - **附加发现**：03 当前 **hotplug 为 DISABLED**（无 `/etc/nvidia/cx7-hotplug-enabled`），而 01/02/04 为 ENABLED——这与 03 无缆仍可见 CX7 的现象一致；与我此前报告"建议 03 保持热插拔启用"的稳态建议不一致，需团队决策（详见 §5）。
 
@@ -22,9 +22,9 @@
 
 | 维度 | 评估 |
 |------|------|
-| 必要性 | **必需**。NCCL 多节点 TP2 的初始化（bootstrapInit）强制使用 TCP 控制环（监听 socket + peerProxy + P2P 地址交换），且当前生产脚本 `NCCL_SOCKET_IFNAME=enp1s0f1np1,enP2p1s0f1np1` 把控制面明确指向数据面 IP（<NODE_IP>/137.1）。TCPStore 25000 已放行但 NCCL 内部握手端口（实测 49917）未放 → comm init 挂起。**不放行则 TP2 无法 init** |
+| 必要性 | **必需**。NCCL 多节点 TP2 的初始化（bootstrapInit）强制使用 TCP 控制环（监听 socket + peerProxy + P2P 地址交换），且当前生产脚本 `NCCL_SOCKET_IFNAME=enp1s0f1np1,enP2p1s0f1np1` 把控制面明确指向数据面 IP（<NODE_IP>/<RING_SUBNET>）。TCPStore 25000 已放行但 NCCL 内部握手端口（实测 49917）未放 → comm init 挂起。**不放行则 TP2 无法 init** |
 | 语义符合度 | **部分削弱**。原"内网纯 RoCE"= 数据面 0 TCP（用户批准，为保护 RDMA 延迟）。现变为"数据面允许 TP2 控制 TCP"。控制面流量很小（KB 级），与"60% TCP 背景压测"的量级完全不同，实际延迟影响有限 |
-| 范围问题 | ① 当前 `<NODE_IP>/24` 只覆盖 136 子网，**漏掉 <NODE_IP>/24**（01/02 的 module1 twin 逻辑口分别在 136/137 两个 /24）；NCCL 可能任选其一，存在"今天通、下次不通"的隐患。② 整 /24 放行 = 允许该段任意 TCP，非仅 NCCL/TP2 控制端口 |
+| 范围问题 | ① 当前 `<NODE_IP>/24` 只覆盖 <RING_SUBNET> 单子网，**漏掉 <NODE_IP>/24**（01/02 的 module1 twin 逻辑口分别在 <RING_SUBNET> 双子网）；NCCL 可能任选其一，存在"今天通、下次不通"的隐患。② 整 /24 放行 = 允许该段任意 TCP，非仅 NCCL/TP2 控制端口 |
 
 ### 1.2 判定依据（证据链）
 
@@ -64,7 +64,7 @@
 | **延迟回退** | 数据面 TCP（尤其 bulk）与 RoCE 数据同链路 → 实测 +128% 延迟（60% 背景） | 收窄放行 + bulk 约定走管理网 + 监控数据面 TCP 流量 |
 | **137 子网缺口** | 当前只放 136，NCCL 若用 137 侧逻辑口则仍被 DROP（时好时坏） | 补 137（或合并为 <NODE_IP>/23） |
 | **放行范围过宽** | 整 /24 放行 = 该段任意 TCP 可用，非仅 NCCL 控制 | 收窄到对端主机 IP（.1<->.2），必要时限 dport（25000 + NCCL 高端口段） |
-| **B-group 未覆盖** | 03/04（10.100.138/139）成环时若沿用同脚本，需同样规则 | 成环前在 03/04 补放行（或直接切更优方案） |
+| **B-group 未覆盖** | 03/04（<RING_SUBNET>）成环时若沿用同脚本，需同样规则 | 成环前在 03/04 补放行（或直接切更优方案） |
 
 ### 3.2 建议的最终规则形态（现状方案收窄版，01/02）
 
@@ -82,7 +82,7 @@ iptables -I INPUT  -i enP2p1s0f1np1 -s <NODE_IP>/32 -p tcp -j ACCEPT
 
 > 说明：
 > - 若希望进一步限定"仅 NCCL 控制"，可加 `--dport 25000`（TCPStore）+ NCCL 高端口段（实测 49917 属动态高端口，NCCL 无固定端口；如需严格限定需确认端口段，成本较高）。**最稳妥的长期方案仍是判定②（NCCL_SOCKET_IFNAME→enP7s7）。**
-> - 03/04 成环（10.100.138/139）时同样处理；若采纳更优方案则 03/04 无需此放行。
+> - 03/04 成环（<RING_SUBNET>）时同样处理；若采纳更优方案则 03/04 无需此放行。
 
 ---
 

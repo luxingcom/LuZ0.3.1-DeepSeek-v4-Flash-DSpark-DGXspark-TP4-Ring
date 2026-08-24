@@ -24,7 +24,7 @@
 | # | 风险 | 现状与证据 | 影响 | 缓解 |
 |---|---|---|---|---|
 | R4 | **UMA 内存耗尽复发（08-19 根因仍在环境）** | 根因 = UMA 内存耗尽（03 NVRM NV_ERR_NO_MEMORY→avail 0→NCCL 300s 超时→oom-killer→03 冻结 50min）。0.7 验证有效，但 SSD 回滚后 mem util **回到 0.80** | conc3×长上下文并发下可能再次触发 NCCL 超时 + 节点冻死 | 恢复 0.70 或保留 0.80 + 硬约束：03/04 持续负载头寸仅 ~2.5G → **内存 avail<2G 告警 + 后手 0.65/降 max-num-seqs**；benchmark 分段恢复，事故格（65536/coding/conc3）单独验证 |
-| R5 | **监控告警覆盖盲区** | Grafana 数据源 01→`http://.187:8191`（02 Prom，非 9090）、scrape 5s、面板按 node 分组。但：job 名/标签仍用旧 .55/.58/.59/.60；vllm 抓取目标含 188:8001（worker 无 API 端口）；节点卡死时 Prometheus 本身中断（03 冻结时采集中断） | 节点冻死、内存告警、进程守护无可靠信号 → 事件发现延迟 | 清理 Prometheus 旧命名与失效抓取目标；**为 avail 内存、KUBE/UMA、NCCL 超时日志、GPU 0% 添加显式告警规则**；node_exporter 卡死视为节点级 SEV 信号 |
+| R5 | **监控告警覆盖盲区** | Grafana 数据源 01→`http://<NODE_IP>:8191`（02 Prom，非 9090）、scrape 5s、面板按 node 分组。但：job 名/标签仍用旧节点末段；vllm 抓取目标含 worker（无 API 端口）；节点卡死时 Prometheus 本身中断（03 冻结时采集中断） | 节点冻死、内存告警、进程守护无可靠信号 → 事件发现延迟 | 清理 Prometheus 旧命名与失效抓取目标；**为 avail 内存、KUBE/UMA、NCCL 超时日志、GPU 0% 添加显式告警规则**；node_exporter 卡死视为节点级 SEV 信号 |
 | R6 | **配置漂移历史复发**（rank 映射颠倒、MTU/shm/capture-sizes/LD_PRELOAD 多处文档失准） | 08-13 双向审核确认运行态与文档系统性漂移 10+ 处，rank 曾颠倒（照文档部署会 TP4 无法组网） | 交接团队照文档误部署 → 组网失败、参数错位 | 交接文档必须以**运行态实测**为准（§部署检查清单的 Go 即为运行态核验）；关键锚点：NCCL MD5 `b7784b49`（v3 双口，旧文档仍写 `4cc43e3b`）、shim v8 md5 `ce43c688` |
 | R7 | **监控/自愈曾因停机窗口误伤生产** | monitor 在 SSD 停机窗口自动拉起 rank0，需先 stop timer+service 才能安全停机 | 维护窗口若未先停 monitor 会意外拉起服务 | 停机 SOP 固化：**先 systemctl stop timer+service → 再容器停机 → 完成后恢复**；此教训写入事故预案 |
 
@@ -55,7 +55,7 @@
 
 | # | 检查项 | 命令 / 判据 | Go（通过） | 备注 |
 |---|---|---|---|---|
-| A1 | 4 机在线、开机顺序 | `ping <NODE_IP>~189` | 4 机全通 | head-first 铁律 |
+| A1 | 4 机在线、开机顺序 | `ping <NODE_IP>~<NODE_IP>` | 4 机全通 | head-first 铁律 |
 | A2 | 时区一致 | `timedatectl` 四机 | UTC | 01 需先修漂移 |
 | A3 | 隔离核生效 | `cat /proc/cmdline` 含 `isolcpus=8-9` | 四机一致 | 数据面铁律 |
 | A4 | 内存头寸 | `free -g`，01/02/03/04 | 生产前 03/04 avail≥4G 余量 | 03/04 仅 ~2.5G 头寸时降配 |
@@ -92,7 +92,7 @@
 
 | # | 检查项 | 判据 | Go |
 |---|---|---|---|
-| E1 | 环网 4 段 IP | `ip -4 addr` 10.100.136/137 + 10.20.0.x + 138/139 + 140/141 | 全配 |
+| E1 | 环网 4 段 IP | `ip -4 addr` <RING_SUBNET> + 10.20.0.x + <RING_SUBNET> + <RING_SUBNET> | 全配 |
 | E2 | MTU | 环邻口 | 9000 |
 | E3 | iptables 白名单 | 新 RoCE 网段已放行 + rules.v4 持久化 | 放行对应 peer 侧 |
 | E4 | QoS | `mlnx-qos` active | 是，DSCP trust |
@@ -132,7 +132,7 @@
 
 **S1 止血（优先于根因）**
 - 通用止血三板斧：
-  1. **先确认监控是否在**（.187:8191/Prom）——若 Prometheus 本身中断 = 节点级冻死信号（08-19 03 即此），高度疑似 UMA 耗尽。
+  1. **先确认监控是否在**（<NODE_IP>:8191/Prom）——若 Prometheus 本身中断 = 节点级冻死信号（08-19 03 即此），高度疑似 UMA 耗尽。
   2. 节点冻死：`free -g` 看 avail，若 <2G → 按 SEV1 处理（清下载任务 / 降 mem util 至 0.65 / 降 max-num-seqs）→ 击杀高内存进程 → 等待 oom-killer 或手动 kill 冻结进程，**删容器后自愈**（08-19 经验）。
   3. NCCL 超时：先查 `docker logs vllm-tp4-rank0 --tail | grep -i "NCCL version"` 是否 `13.3`（LD_PRELOAD 失效 → 立即修挂载）→ 再查环网/PEER_HCA/隔离核 → NCCL 超时多为**被动受害者**，先查内存再查网。
 

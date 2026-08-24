@@ -14,6 +14,8 @@
 | `<INSTALL_DIR>` | 内部安装目录 | 应用部署根目录 |
 | `<MODELS_DIR>` / `<HOME_DIR>` | 模型/用户主目录 | 用户 home 与模型目录 |
 | `<NODE_IP>` | 内网 IP（端口保留） | 内网地址（形如私有网段） |
+| `<RING_SUBNET>` | 环网 RoCE 子网对/段（`10.100.x/y`、`10.100.x~y`、`10.20.x`） | 环网数据面子网、iptables 白名单段 |
+| `<DOCKER_IP>` | Docker bridge 容器 IP（`172.18.x.x` 等桥接网段） | docker daemon 重启后容器 IP 漂移记录 |
 | `REGISTRY_HOST` | 镜像仓库主机（内部 registry，端口保留） | `REGISTRY_HOST:5000/anemll/…` 镜像引用 |
 | `<BASE_IMAGE_DIGEST>` / `<BAKE_IMAGE_DIGEST>` | 镜像内容哈希（digest）占位符 | 基座 / LuZ0.3.1 bake 镜像 digest，现场 `docker inspect` resolve |
 | `node0X` | 主机名 | 四节点主机名（统一匿名） |
@@ -21,7 +23,7 @@
 ## 规则
 
 1. 批量替换工具 `redact.py` + 私有模式文件 `redact-patterns.json` 仅存在于本地（`redact-patterns.json` 已 gitignore，含真实值，勿提交）。
-2. 已对发布副本执行全量替换并重扫验证：**工作树与已提交树敏感模式残留 = 0**（扫描类别：内网 IP / 主机名 / 内部用户名 / 密码 / key 前缀 / 内部路径 / api key 形态）。
+2. 已对发布副本执行全量替换并重扫验证：**工作树与已提交树敏感模式残留 = 0**（扫描类别：内网 IP / 环网子网对 / docker bridge / 主机名 / 内部用户名 / 密码 / key 前缀 / 内部路径 / api key 形态）。2026-08-24 增补：环网子网对 `10.100.x/y`、`10.100.x~y`、`10.20.x` → `<RING_SUBNET>`；docker bridge `172.18.x.x` → `<DOCKER_IP>`。
 3. 若后续发现遗漏（如新 IP、新路径、新 key），重新运行 `redact.py` 后提交。
 
 ## 已知简化

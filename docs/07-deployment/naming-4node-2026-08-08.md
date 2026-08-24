@@ -38,12 +38,12 @@
 | 03 | node01 | <NODE_IP> | node01 | gx10-3f4d | gx10-55 | embed/组B head |
 | 04 | node01 | <NODE_IP> | node01 | gx10-31c4 | gx10-59 | embed/组B worker |
 
-**不改**：容器名（vllm-envE-node/worker）、RoCE IP（10.100.136~139）、管理 IP（186~189）、NVIDIA sync 编号映射。
+**不改**：容器名（vllm-envE-node/worker）、RoCE IP（<RING_SUBNET>）、管理 IP（<NODE_IP>~<NODE_IP>）、NVIDIA sync 编号映射。
 
 ### 变更范围
 1. **hostname**（四机 hostnamectl 三态同改 + /etc/hosts 127.0.1.1 同步）✅
 2. **工作机 ssh config**：主别名 node01~04 + 旧别名 deprecated 注释保留（3 个月后移除）✅
-3. **四机内部 ssh config**：新增 RoCE 对端别名（.60→node01、.58→node01、.55→node01），NVIDIA sync 生成的 DGXspark0X 块保留不动（防 sync 重写覆盖）✅
+3. **四机内部 ssh config**：新增 RoCE 对端别名（旧节点末段→node01、node01→node01），NVIDIA sync 生成的 DGXspark0X 块保留不动（防 sync 重写覆盖）✅
 4. **Prometheus 标签**：machine=node=dgxspark0N（10 处统一，4 台 8/8 up）✅
 5. **脚本**：start_head_v026r.sh hostname 校验 spark-05cd→node01；start_v026r_cluster.sh HEAD_HOST/WORKER_HOST→node01/02 ✅
 6. **文档**：file-registry（四机同步 + 本地副本）、Runbook（Docu 更新中）✅

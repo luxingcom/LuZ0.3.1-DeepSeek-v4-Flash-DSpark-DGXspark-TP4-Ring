@@ -103,15 +103,15 @@
 ## 3. 部署架构（文字版拓扑）
 
 ```
-┌──────────── 管理网 <NODE_IP>~189（2.5GbE：SSH / API / TCPStore 控制面）────────────┐
+┌──────────── 管理网 <NODE_IP>~<NODE_IP>（2.5GbE：SSH / API / TCPStore 控制面）────────────┐
 │                                                                                        │
-│   [01 A-head rank0] ════ 10.100.136/137 ════ [02 A-worker rank1]   环网边1 module1      │
+│   [01 A-head rank0] ════ <RING_SUBNET> ════ [02 A-worker rank1]   环网边1 module1      │
 │         ║                                              ║                                 │
-│    10.100.140/141 (module0)                     <NODE_IP>/30 + <NODE_IP>/30 (module0)  │
+│    <RING_SUBNET> (module0)                     <NODE_IP>/30 + <NODE_IP>/30 (module0)  │
 │         ║                    (TP2 遗留段)              ║                                 │
-│   [03 B-head rank3] ════ 10.100.138/139 ════ [04 B-worker rank2]   环网边2 module1      │
+│   [03 B-head rank3] ════ <RING_SUBNET> ════ [04 B-worker rank2]   环网边2 module1      │
 │                                                                                        │
-└──────── RoCE：A=136/137(GID2)、B=138/139(GID4)；MTU9000；DSCP46→P5；NCCL RING ──────────┘
+└──────── RoCE：A=<RING_SUBNET>(GID2)、B=<RING_SUBNET>(GID4)；MTU9000；DSCP46→P5；NCCL RING ──────────┘
 
 逻辑环：01(rank0) → 02(rank1) → 04(rank2) → 03(rank3) → 01
   - TP4 数据面：NCCL all-reduce 沿环 1 跳邻居中继（对角 2 跳不可用，禁用）

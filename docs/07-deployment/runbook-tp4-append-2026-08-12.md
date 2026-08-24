@@ -17,7 +17,7 @@
 | 3 | node01 | <NODE_IP> | 04(f1)、01(f0) | worker |
 
 - 控制面走管理网：MASTER_ADDR=<NODE_IP>、**MASTER_PORT=25999**（TP4 专用，非 TP2 的 25000）
-- RoCE 环网 IP：01↔02 = 10.100.136/137；02↔04 = 10.20.0.x；04↔03 = 10.100.138/139；03↔01 = **10.100.140/141**（8/11 补闭环）；MTU 全 9000
+- RoCE 环网 IP：01↔02 = <RING_SUBNET>；02↔04 = 10.20.0.x；04↔03 = <RING_SUBNET>；03↔01 = **<RING_SUBNET>**（8/11 补闭环）；MTU 全 9000
 - 容器：`vllm-tp4-rank0~3`，`--restart no`，`--tensor-parallel-size 4 --nnodes 4`，host 网络；镜像 `anemll/dspark-vllm-gx10:0.2.1-v026.0`
 
 ### A.2 补丁方案（ring-only NCCL，社区 GLM-5.2 路线）
@@ -80,8 +80,8 @@ cd <INSTALL_DIR>/scripts && bash start_tp4_cluster.sh
 - 教训：自检必须用**对外 IP**（红线 7）；rules.v4 不得固化 docker 动态 DOCKER 链（红线 6）；compose 容器建议固定 ipv4_address 防漂移。
 
 ### C.2 iptables 白名单阻断新链路（已根治）
-- 四台 iptables 为白名单模式，只放行旧相邻段 IP；新链路 10.100.140/141 TCP 全 DROP → iperf3 初测失败暴露。
-- 修复：放行 10.100.140/141 并持久化 rules.v4；各机放行各自 peer 侧（01 放 140.2/141.2 等）。
+- 四台 iptables 为白名单模式，只放行旧相邻段 IP；新链路 <RING_SUBNET> TCP 全 DROP → iperf3 初测失败暴露。
+- 修复：放行 <RING_SUBNET> 并持久化 rules.v4；各机放行各自 peer 侧（<RING_SUBNET> 对端接口等）。
 - **流程固化**：任何新 RoCE 网段配 IP 必须同步放行 iptables（红线 5）。
 
 ### C.3 环网 FEC 错误率（P1 解除）

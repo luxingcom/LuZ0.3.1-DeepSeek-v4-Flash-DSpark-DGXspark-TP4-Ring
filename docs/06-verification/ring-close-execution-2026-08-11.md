@@ -9,7 +9,7 @@
 
 ## 📌 TL;DR（执行摘要）
 
-- **P1×3 全部闭环并真实验证**：①03—01 段 RoCE IP 补齐（10.100.140/141，四口互 ping 0% 丢包）②四台 /etc/hosts 全解析 ③01/02 内存给出明确结论（TP4 前须降 max-num-seqs/清缓存）。
+- **P1×3 全部闭环并真实验证**：①03—01 段 RoCE IP 补齐（<RING_SUBNET>，四口互 ping 0% 丢包）②四台 /etc/hosts 全解析 ③01/02 内存给出明确结论（TP4 前须降 max-num-seqs/清缓存）。
 - **重大发现**：四台 iptables 白名单（INPUT+OUTPUT）只放行旧相邻段 IP → 新链路 TCP 全被 DROP，已修复并写入 rules.v4 持久化 —— 这是历史网络问题的同类根因，本次彻底根治。
 - **iperf3 四段双向 99-110Gbps、重传 0-6；压测后 16 口错误计数全 0** → 物理层 P1 **正式解除**。
 - QoS DSCP trust 已在 01/03 新口生效（与既有段一致）；01/02 docker runtime 已对齐（待维护窗口重启生效）。
@@ -35,8 +35,8 @@
 | 阶段 | 动作 | 改动文件 | 验证 | 结果 |
 |---|---|---|---|---|
 | 0 | 备份+基线快照 | 四台 netplan/hosts/daemon.json/rules.v4 → <INSTALL_DIR>/backup/ring-fix-20260811/<host>/ | 基线错误计数全 0 | ✅ |
-| 1 (P1-1) | 01/03 的 97-roce-mtu.yaml 追加 10.100.140/141（/24，MTU 9000 与既有段一致） | /etc/netplan/97-roce-mtu.yaml | netplan apply 成功；四口互 ping 0% 丢包；ip neigh 有对端；169.254 清除 | ✅ |
-| 2 (P1-2) | 四台 /etc/hosts 追加 node01~04=<NODE_IP>~189 | /etc/hosts | getent hosts 全返回管理网 IP | ✅ |
+| 1 (P1-1) | 01/03 的 97-roce-mtu.yaml 追加 <RING_SUBNET>（/24，MTU 9000 与既有段一致） | /etc/netplan/97-roce-mtu.yaml | netplan apply 成功；四口互 ping 0% 丢包；ip neigh 有对端；169.254 清除 | ✅ |
+| 2 (P1-2) | 四台 /etc/hosts 追加 node01~04=<NODE_IP>~<NODE_IP> | /etc/hosts | getent hosts 全返回管理网 IP | ✅ |
 | 3 (P1-3) | 01/02 内存评估（free/ps/docker stats） | - | used 110/121Gi、available ~10G、swap 已用 2.7G/4.5G | ⚠️ 结论见下 |
 | 4 (P2) | iperf3 四段双向压测（装 iperf3） | - | **发现防火墙阻断→修复→四段 99-110Gbps、重传 0-6；16 口错误计数仍全 0** | ✅ |
 | 5 (P2) | 01/02 daemon.json 追加 runtimes.nvidia（对齐 03） | /etc/docker/daemon.json | jq 校验通过、与 03 diff 一致；docker 未重启 | ✅ |
@@ -47,10 +47,10 @@
 
 | 段 | 01 | 02 | 03 | 04 |
 |---|---|---|---|---|
-| 01↔02（f1） | <NODE_IP> / 137.1 | <NODE_IP> / 137.2 | - | - |
+| 01↔02（f1） | <NODE_IP> / <RING_SUBNET> 侧 | <NODE_IP> / <RING_SUBNET> 侧 | - | - |
 | 02↔04（f0） | - | <NODE_IP> / <NODE_IP> | - | <NODE_IP> / <NODE_IP> |
-| 04↔03（f1） | - | - | <NODE_IP> / 139.2 | <NODE_IP> / 139.3 |
-| **03↔01（f0）新增** | **<NODE_IP> / 141.1** | - | **<NODE_IP> / 141.2** | - |
+| 04↔03（f1） | - | - | <NODE_IP> / <RING_SUBNET> 侧 | <NODE_IP> / <RING_SUBNET> 侧 |
+| **03↔01（f0）新增** | **<NODE_IP> / <RING_SUBNET> 侧** | - | **<NODE_IP> / <RING_SUBNET> 侧** | - |
 
 ## 📊 iperf3 四段实测（双向，-P4）
 
@@ -67,7 +67,7 @@
 
 | 项 | 判定 | 证据 |
 |---|---|---|
-| P1-1 环网 L3 闭合 | ✅ 闭环 | 140.1/141.1 ↔ 140.2/141.2 四口互 ping 0% 丢包 |
+| P1-1 环网 L3 闭合 | ✅ 闭环 | 环网新段对端接口四口互 ping 0% 丢包 |
 | P1-2 hostname 解析 | ✅ 闭环 | 四台 getent 全返 192.168.5.x |
 | P1-3 01/02 内存 | ⚠️ 结论 | TP4 部署前须降 max-num-seqs 或清 buff/cache；available ~10G、swap 换页趋势，直接扩 TP 有 OOM 风险 |
 | P2-1 错误率 P1 | ✅ **正式解除** | iperf3 压测后 16 口 port_xmit_discards/symbol_error/local_link_integrity_errors 全 0 无增量 |
@@ -76,8 +76,8 @@
 
 ## 🔥 重大发现：iptables 白名单阻断新链路
 
-- 四台 iptables（INPUT+OUTPUT）为**白名单模式**，只放行旧相邻段 IP（如 136/137、10.20.0.x 对端），新链路（10.100.140/141）TCP 全部 DROP → iperf3 初测失败暴露。
-- 已修复：放行 10.100.140/141 段，写入 /etc/iptables/rules.v4（持久化）。
+- 四台 iptables（INPUT+OUTPUT）为**白名单模式**，只放行旧相邻段 IP（如 <RING_SUBNET>、10.20.0.x 对端），新链路（<RING_SUBNET>）TCP 全部 DROP → iperf3 初测失败暴露。
+- 已修复：放行 <RING_SUBNET> 段，写入 /etc/iptables/rules.v4（持久化）。
 - **启示**：与历史 <NODE_IP>:5000 不通现象高度同类（交换机 ACL 疑云），本次为防火墙层实锤；后续新增链路必须同步放行 iptables，纳入变更清单。
 
 ## ✅ 行动清单（按优先级排序）

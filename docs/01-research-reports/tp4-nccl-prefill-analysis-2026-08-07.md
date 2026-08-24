@@ -8,10 +8,10 @@
 
 ## 📌 TL;DR（执行摘要）
 
-- **结论**：TP4 收益远大于 sm_121a 重编——**P0 阻塞项是 .55/.59 物理接线**；TP4 bring-up 直接用 cu132 全栈（NCCL 2.30.7）；sm_121a SASS 重编**暂缓（Conditional No-Go）**，以 TP4 实测为门禁。
+- **结论**：TP4 收益远大于 sm_121a 重编——**P0 阻塞项是两节点直连口物理接线**；TP4 bring-up 直接用 cu132 全栈（NCCL 2.30.7）；sm_121a SASS 重编**暂缓（Conditional No-Go）**，以 TP4 实测为门禁。
 - **决策**：TP4 有线组网 + NCCL 2.30.7 = **Go**（预期收益 1.7-1.9×，门禁=物理接线 + 实测带宽 ≥8GB/s）；sm_121a 重编 = **Conditional No-Go**（TP4 实测满足 3 条件后再回来）。
 - 严重度分布：🔴 阻塞 1 项（物理接线）/ 🟠 高 2 项（带宽实测、NCCL 版本）/ 🟡 中 3 项。
-- 阻塞 / 非阻塞：**阻塞**——.55/.59 无直连口枚举，Wi-Fi 组网量化不可行（~200× 慢于计算），接线前 TP4 No-Go。
+- 阻塞 / 非阻塞：**阻塞**——两节点直连口无枚举，Wi-Fi 组网量化不可行（~200× 慢于计算），接线前 TP4 No-Go。
 
 ---
 
@@ -20,7 +20,7 @@
 | 项目 | 内容 |
 |------|------|
 | 整体评级 | 🟡 有条件通过（条件 = 物理接线 + 实测带宽 ≥8GB/s） |
-| 阻塞项数量 | 1 项（P0：.55/.59 ConnectX-7 直连口接线启用） |
+| 阻塞项数量 | 1 项（P0：两节点 ConnectX-7 直连口接线启用） |
 | TP4 预期收益 | 理想 2.0× / 现实 **1.7-1.9×**（prefill_tps，需 comm 隐藏成立） |
 | sm_121a 重编 | ⏸️ Conditional No-Go（3-5% 收益 vs 高工程风险） |
 | 建议下一步 | P0 接线+带宽实测 → P1 cu132 全栈 TP4 bring-up → P2 profile 后定 sm_121a |
@@ -73,14 +73,14 @@ GB10 临界算术强度 AI* = P/BW ≈ 250T/273G ≈ **915 FLOP/byte**；prefill
 
 ## 5. 分阶段建议
 
-- **P0（阻塞）**：.55/.59 接线 + 启用直连口 + MTU 9000 + **实测带宽 ≥8GB/s**（iperf3/ib_write_bw）
+- **P0（阻塞）**：两节点直连口接线 + 启用 + MTU 9000 + **实测带宽 ≥8GB/s**（iperf3/ib_write_bw）
 - **P1**：cu132 全栈 TP4 bring-up（NCCL 2.30.7、环拓扑、排除 Wi-Fi、分级 2→3→4 机 bring-up）；测 4K/16K/32K prefill 吞吐对 TP2 A/B
 - **P2**：profile 定 GEMM 占比 → 再决定 sm_121a A/B（仅重编 vLLM/cutlass GEMM 路径）
 
 ## 6. 组网执行要点（Rex 清单摘要）
 
-- **拓扑**：直连环 58→60→59→55→58（4 条线、每机 2 口全用）；IP 沿用 <NODE_IP>/24（A 链）+ <NODE_IP>/24（B 链），新增 10.100.138/139 按需
-- **必须先补**：四机 SSH 互信（.58→.55 实测 Permission denied）
+- **拓扑**：直连环 4 机闭环（4 条线、每机 2 口全用）；IP 沿用 <NODE_IP>/24（A 链）+ <NODE_IP>/24（B 链），新增 <RING_SUBNET> 按需
+- **必须先补**：四机 SSH 互信（实测旧节点间 Permission denied）
 - **必须补静态路由 + ip_forward=1**（否则远端 rank 不可达）
 - **NCCL**：`NCCL_IB_HCA=mlx5_x` 显式限定、`NCCL_SOCKET_IFNAME=en*`（排除 wlP9s9）、`NCCL_IB_TIMEOUT=1000`/`RETRY_CNT=7` 沿用、`NCCL_DEBUG=WARN`（首跑 INFO）
 - **竞态预案**：head 先启 TCPStore（轮询 25000）→ rank1/2/3 间隔 2-5s **串行**启动（禁止并行 spawn）；降级 TP4→TP3→TP2；保留 TP2 脚本回滚
@@ -100,9 +100,9 @@ GB10 临界算术强度 AI* = P/BW ≈ 250T/273G ≈ **915 FLOP/byte**；prefill
 
 | # | 行动 | 负责角色 | 紧急度 | 预期完成 |
 |---|------|---------|--------|---------|
-| 1 | .55/.59 ConnectX-7 直连口接线 + 启用 + MTU 9000 + **实测带宽**（ethtool/iperf3/ib_write_bw，确认 12GB/s vs 3.1GB/s） | Rex | P0 | 本周 |
-| 2 | 补四机 SSH 互信（.58→.55/.59 公钥） | Rex | P0 | 今日 |
-| 3 | cu132 全栈镜像铺到 4 机（.58/.60 从 registry 拉取）+ NCCL 2.30.7 bring-up（环拓扑、分级 2→3→4） | Rex/Archi | P1 | 1-2 周 |
+| 1 | 两节点 ConnectX-7 直连口接线 + 启用 + MTU 9000 + **实测带宽**（ethtool/iperf3/ib_write_bw，确认 12GB/s vs 3.1GB/s） | Rex | P0 | 本周 |
+| 2 | 补四机 SSH 互信（旧节点间公钥） | Rex | P0 | 今日 |
+| 3 | cu132 全栈镜像铺到 4 机（从 registry 拉取）+ NCCL 2.30.7 bring-up（环拓扑、分级 2→3→4） | Rex/Archi | P1 | 1-2 周 |
 | 4 | prefill_bench.py 开发（修 prefix-cache、128k/256k 校准）+ C1/C2 对比矩阵 | Tessa | P1 | 1-2 周 |
 | 5 | TP4 实测后按 3 条件门禁评估 sm_121a 重编（comm 隐藏/GEMM≥70%/计算受限） | Archi | P2 | 持续 |
 
@@ -110,7 +110,7 @@ GB10 临界算术强度 AI* = P/BW ≈ 250T/273G ≈ **915 FLOP/byte**；prefill
 
 ## ⚠️ 待完善 / 已知局限
 
-- **最高优先级待核实**：实际链路速率与实测带宽（决定 TP4 成败）；DeepSeek-V4-Flash 的 H/L/激活 dtype/活跃参数数/KV 是否 MLA 压缩；.55/.59 无直连口枚举根因（线缆/驱动/BIOS）；vLLM 0.26.1.dev0 对 torch 2.14.0.dev+cu132 兼容 A/B。
+- **最高优先级待核实**：实际链路速率与实测带宽（决定 TP4 成败）；DeepSeek-V4-Flash 的 H/L/激活 dtype/活跃参数数/KV 是否 MLA 压缩；两节点直连口无枚举根因（线缆/驱动/BIOS）；vLLM 0.26.1.dev0 对 torch 2.14.0.dev+cu132 兼容 A/B。
 - 收益模型基于公开规格与公式推算（H≈12K、P≈250TFLOPS），实测数据出来后需回填校准。
 - 无交换机点对点 RoCE 无 PFC/DCB，靠重传，NCCL_IB_TIMEOUT=1000 已覆盖；第二口命名/IB 设备名以实测为准。
 
@@ -121,7 +121,7 @@ GB10 临界算术强度 AI* = P/BW ≈ 250T/273G ≈ **915 FLOP/byte**；prefill
 - **Archi（架构师）**：TP4 NCCL 收益模型（带宽前提修正/显存/算力/通信公式/加速比估算/NCCL 版本对比）、路径 1 重估（计算受限确认/端到端收益/条件门禁）、综合决策与分阶段建议
 - **Rex（SRE）**：组网执行清单（物理层诊断/环拓扑 IP 规划/静态路由/NCCL 配置/竞态预案/降级回滚/监控）
 - **Tessa（测试专家）**：prefill 主导基准计划（已落盘 TP4_prefill_bench_plan.md：口径/对比矩阵/用例表/脚本改造/验收标准）
-- 主理人侦察：.55 仅 Wi-Fi 无直连口枚举（lspci 有 PCI bridge 但 infiniband 空）、Wi-Fi 延迟 63-124ms、生产 NCCL 2.28.9、cu132 全栈 NCCL 2.30.7
+- 主理人侦察：某节点仅 Wi-Fi 无直连口枚举（lspci 有 PCI bridge 但 infiniband 空）、Wi-Fi 延迟 63-124ms、生产 NCCL 2.28.9、cu132 全栈 NCCL 2.30.7
 
 ---
 

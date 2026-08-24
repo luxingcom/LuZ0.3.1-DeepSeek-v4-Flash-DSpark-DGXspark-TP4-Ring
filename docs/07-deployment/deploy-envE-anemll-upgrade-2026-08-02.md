@@ -48,7 +48,7 @@
 
 - **ADR-0013**：升级 Anemll 0.1.1，接受 vLLM 0.25 断代 + metrics 核对成本，换 SM120 真路径
 - **ADR-0014**：保留 0731 权重（48 片双机已就位），nvfp4 dry-run 失败回退 `--kv-cache-dtype fp8`（保 kernel/seqs），不切换权重（避免 156GB 重拉）
-- **ADR-0015**：NCCL 双 socket 链路（10.100.136/137）替代文章 bond0，与 Rex 坐实结果收敛
+- **ADR-0015**：NCCL 双 socket 链路（<RING_SUBNET>）替代文章 bond0，与 Rex 坐实结果收敛
 
 ## 可运维性（Rex 联动）
 

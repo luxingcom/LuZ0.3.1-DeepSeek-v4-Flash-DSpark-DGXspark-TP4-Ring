@@ -71,11 +71,11 @@
 ### 2.1 拓扑与切分
 
 ```
-管理网 <NODE_IP>~189（2.5GbE：SSH/API/TCPStore 控制面）
-[01 rank0] ══10.100.136/137══ [02 rank1]     环序 01→02→04→03→01
-   ║ 10.100.140/141 (module0)      ║ <NODE_IP>/30+<NODE_IP>/30 (module0)
-[03 rank3] ══10.100.138/139══ [04 rank2]
-RoCE：A=136/137、B=138/139；MTU9000；DSCP46→P5；NCCL RING（对角 2 跳禁用）
+管理网 <NODE_IP>~<NODE_IP>（2.5GbE：SSH/API/TCPStore 控制面）
+[01 rank0] ══<RING_SUBNET>══ [02 rank1]     环序 01→02→04→03→01
+   ║ <RING_SUBNET> (module0)      ║ <NODE_IP>/30+<NODE_IP>/30 (module0)
+[03 rank3] ══<RING_SUBNET>══ [04 rank2]
+RoCE：A=<RING_SUBNET>、B=<RING_SUBNET>；MTU9000；DSCP46→P5；NCCL RING（对角 2 跳禁用）
 ```
 
 - **TP4 定案**（每节点 1 rank，NODE_RANK 对齐环序 01=0/02=1/04=2/03=3）；EP 仅作 P2 后续实测
@@ -157,7 +157,7 @@ export SGLANG_RAGGED_VERIFY_MODE=compact
 - ✅ **NVFP4 权重四机就绪**（164-165G/机，48 shards，软链已建）→ 无需下载
 - ✅ 磁盘充足（01=2.9T/02=2.3T/03=622G/04=631G 可用）
 - ✅ NCCL ring-only 2.30.7 四机存在，生产 env 全套可镜像
-- ✅ 本地仓库 .187:5000 可达；NGC 可达（需登录）；02 已有 NGC 拉取先例
+- ✅ 本地仓库 <NODE_IP>:5000 可达；NGC 可达（需登录）；02 已有 NGC 拉取先例
 - ✅ 生产 vLLM 四容器 healthy，健康判定以 EngineCore 进程 pgrep 为准
 
 ### 3.2 发现的问题（严重度排序）
@@ -188,7 +188,7 @@ export SGLANG_RAGGED_VERIFY_MODE=compact
 
 | # | 行动 | 负责角色 | 紧急度 | 预期完成 |
 |---|------|---------|--------|---------|
-| 1 | 02 拉取 `nvcr.io/nvidia/sglang:26.07-py3`（需 NGC 凭据）→ `docker exec` 验证 SGLang ≥0.5.14 / flashinfer ≥0.6.15 → tag/push 到 .187:5000 → 四机 pull；版本不合则改拉 `lmsysorg/sglang:v0.5.16` | Rex/Archi | P0 | 容器就绪后当日 |
+| 1 | 02 拉取 `nvcr.io/nvidia/sglang:26.07-py3`（需 NGC 凭据）→ `docker exec` 验证 SGLang ≥0.5.14 / flashinfer ≥0.6.15 → tag/push 到 <NODE_IP>:5000 → 四机 pull；版本不合则改拉 `lmsysorg/sglang:v0.5.16` | Rex/Archi | P0 | 容器就绪后当日 |
 | 2 | 权重 W 系列验证：hf_quant_config.json 完整性 + **MTP 策略定案**（experts-mtp-fallback 是否可被 SGLang 接受）+ W4 全量 bit-exact 补扫 + 四机 sha256 一致 | Tessa（+Rex 执行） | P0 | 1 天 |
 | 3 | 四机 preflight 补核验：8010/8011/26000 空闲、`/proc/self/maps` NCCL 2.30.7、RoCE 对口、MTU、GID=3 | Rex | P0 | 半日 |
 | 4 | **TP1 冒烟（先单机）**：确认 `is_sm120_supported()` 覆盖 SM121、NVFP4 MoE kernel 选择（flashinfer_trtllm_routed vs 降级链）、首 token 生成——全绿才进 TP4 | Tessa/Rex | P0 | 半日~1 天 |
