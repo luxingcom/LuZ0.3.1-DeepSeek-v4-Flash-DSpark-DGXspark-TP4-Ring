@@ -14,6 +14,8 @@
 | `<INSTALL_DIR>` | 内部安装目录 | 应用部署根目录 |
 | `<MODELS_DIR>` / `<HOME_DIR>` | 模型/用户主目录 | 用户 home 与模型目录 |
 | `<NODE_IP>` | 内网 IP（端口保留） | 内网地址（形如私有网段） |
+| `REGISTRY_HOST` | 镜像仓库主机（内部 registry，端口保留） | `REGISTRY_HOST:5000/anemll/…` 镜像引用 |
+| `<BASE_IMAGE_DIGEST>` / `<BAKE_IMAGE_DIGEST>` | 镜像内容哈希（digest）占位符 | 基座 / LuZ0.3.1 bake 镜像 digest，现场 `docker inspect` resolve |
 | `node0X` | 主机名 | 四节点主机名（统一匿名） |
 
 ## 规则

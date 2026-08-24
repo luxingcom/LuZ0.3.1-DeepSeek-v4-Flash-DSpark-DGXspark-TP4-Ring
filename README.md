@@ -27,6 +27,7 @@ data/                       基准原始数据（json/csv）
 ## 快速导航
 
 - **最终指标**：`docs/03-final-metrics/FINAL-METRICS-LuZ0.3.1.md`
+- **部署指导教程（新手入口）**：`docs/07-deployment/DEPLOYMENT-GUIDE.md`（环境要求 / 镜像构建 / head-first 启动 / 参数表 / 验证 / 回滚 / 安全）
 - **LuZ0.3.1 落地**：`docs/07-deployment/luz031-deployment-2026-08-23.md`
 - **W4A4 翻案链**：`docs/02-performance-benchmarks/threshold-retest-2026-08-22.md` → `docs/07-deployment/threshold-4096-adoption-2026-08-22.md` → `docs/05-kernels-patches/wsdedup-l3-combo-2026-08-23.md`
 - **算子源码**：`kernels/`（plugin_a1 = W4A4 生产插件；kernel2 = MLA KV linear；routeB = FP8 稠密 GEMM）

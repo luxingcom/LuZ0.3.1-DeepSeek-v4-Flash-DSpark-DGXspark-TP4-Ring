@@ -28,7 +28,7 @@
 | kv_cache_dtype | nvfp4_ds_mla | |
 | cudagraph capture | 1..96（16 档） | |
 | NCCL | ring-only 2.30.7 + 4 通道（MIN/MAX=4） | |
-| 镜像 | `192.168.5.187:5000/anemll/dspark-vllm-gx10:LuZ0.3.1`（digest sha256:85f2149f…） | |
+| 镜像 | `REGISTRY_HOST:5000/anemll/dspark-vllm-gx10:LuZ0.3.1`（digest `sha256:<BAKE_IMAGE_DIGEST>`） | |
 
 > 基线变更记录：vs W4A16 B1 基线仅 9 项实际变更（W4A4 full、MIN_M、CG、SHARED、util 0.82、FI 0.6.16 补回、plugin_a1 前缀、池 overlay、checker 同步）——详见 `w4a4-vs-w4a16-diff-audit-2026-08-23.md`。
 >
