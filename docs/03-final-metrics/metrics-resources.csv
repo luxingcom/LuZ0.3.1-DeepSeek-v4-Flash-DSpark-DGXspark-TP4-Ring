@@ -1,9 +1,9 @@
 ﻿metric_group,metric,value,unit,delta_vs_w4a16_b1,measurement,source_report,notes
-RESOURCE,weight_moe,45.32,GiB,+11.9%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=40.5; pooled vs unpooled 68.15 (saved 22.83)
-RESOURCE,kv_tokens,5730000,tokens,-5.1%,actual,luz031-deployment-2026-08-23.md §3.4,gate >=5.7M PASS; W4A16 B1=6037164
-RESOURCE,kv_memory,50.81,GiB,-5.1%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=53.53
-RESOURCE,peak_activation,2.03,GiB,0%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=2.03
-RESOURCE,cudagraph,1.4,GiB,+0.7 vs ~0.7,startup log,luz031-deployment-2026-08-23.md §3.4,W4A16 B1~0.7
+RESOURCE,weight_moe,45.32,GiB,+11.9%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=40.5; pooled vs unpooled 68.15 (saved 22.83); delta=percent
+RESOURCE,kv_tokens,5730000,tokens,-5.1%,actual,luz031-deployment-2026-08-23.md §3.4,gate >=5.7M PASS; W4A16 B1=6037164; adoption-window value (G1 5796156 / E5 5805111); delta=percent
+RESOURCE,kv_memory,50.81,GiB,-5.1%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=53.53; delta=percent
+RESOURCE,peak_activation,2.03,GiB,0%,actual,luz031-deployment-2026-08-23.md §3.4,W4A16 B1=2.03; delta=percent
+RESOURCE,cudagraph,1.4,GiB,+0.7 GiB abs (vs ~0.7),startup log,luz031-deployment-2026-08-23.md §3.4,W4A16 B1~0.7; NOTE: this row delta is absolute GiB difference NOT percent
 QUALITY,quality_gate,4/4,exact_match,,4 prompt greedy,luz031-deployment-2026-08-23.md §3.4,own_stable 4/4
 QUALITY,needle_64k,3/3,PASS,,mid/late/late,luz031-deployment-2026-08-23.md §3.4,128K add 1/2 (known jitter)
 QUALITY,regression_log,0,error/exception/traceback,,rank0 full log,luz031-deployment-2026-08-23.md §3.4,

@@ -28,9 +28,12 @@
 | kv_cache_dtype | nvfp4_ds_mla | |
 | cudagraph capture | 1..96（16 档） | |
 | NCCL | ring-only 2.30.7 + 4 通道（MIN/MAX=4） | |
-| 镜像 | `<NODE_IP>:5000/anemll/dspark-vllm-gx10:LuZ0.3.1`（digest sha256:85f2149f…） | |
+| 镜像 | `192.168.5.187:5000/anemll/dspark-vllm-gx10:LuZ0.3.1`（digest sha256:85f2149f…） | |
 
 > 基线变更记录：vs W4A16 B1 基线仅 9 项实际变更（W4A4 full、MIN_M、CG、SHARED、util 0.82、FI 0.6.16 补回、plugin_a1 前缀、池 overlay、checker 同步）——详见 `w4a4-vs-w4a16-diff-audit-2026-08-23.md`。
+>
+> **口径警示**：本汇总所有「vs W4A16 B1」对比均指 **w4a4-ext B1 臂**（同窗同工具，util 0.80、FI 0.6.16、thr4096、MTP n7、batched 4096、seqs 12），**不是** `runbook-tp4-v1.5`（08-12）记录的更早固化值（util 0.65、MTP n5、seqs 6）——两套 B1 参考勿混用（详见 w4a4-vs-w4a16-diff-audit §0）。
+> **KV tokens 跨窗口波动**：采纳口径 5,730,000（luz031 08-23）→ G1 5,796,156（08-24）→ E5 5,805,111（08-23 晚克隆）；本汇总统一采用采纳口径 5.73M，对照 g1/arstall 报告时注意窗口差异。
 
 ---
 
@@ -105,7 +108,9 @@
 
 ### 3.2 W4A4 vs W4A16 同窗并发代价（G1 对照，decode-only t/s 中位|最优）
 
-| 并发 | W4A4（LuZ0.3.1） | W4A16（G1） | Δ中位 |
+> **Δ 方向定义**：本表 Δ = (W4A16 − W4A4) / W4A4，**正值 = W4A16 更快**（与 §2.4 的 Δ 方向相反——§2.4 Δ = LuZ0.3.1 vs 官方 8/19，正值 = LuZ0.3.1 更快）。C1 −3.1% 意为 W4A4 略快于 W4A16，勿与 §2.4 误读。
+
+| 并发 | W4A4（LuZ0.3.1） | W4A16（G1） | Δ中位（正=W4A16 快） |
 |---|---|---|---|
 | C1 | 73.9 \| 136.5 | 71.6 \| 93.9 | -3.1% |
 | C4 | 186.7 \| 218.8 | 203.5 \| 213.2 | +9.0% |
