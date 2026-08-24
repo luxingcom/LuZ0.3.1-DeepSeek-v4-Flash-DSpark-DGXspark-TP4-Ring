@@ -293,7 +293,51 @@ docker inspect --format '{{index .RepoDigests 0}}' REGISTRY_HOST:5000/anemll/dsp
 
 > bake 后启动脚本的 `IMG` 指向 `…:LuZ0.3.1` 即可；运行时不再需要 overlay 挂载（已固化进镜像），仅保留 `/models` 权重挂载与可写缓存卷。
 
-### 3.7 权重 / checkpoint（独立获取，不随仓库/镜像）
+### 3.7 已发布镜像获取（百度网盘分发）
+
+LuZ0.3.1 **自包含生产镜像**（即 §3.6 方案 B 的 bake 产物）已发布，可直接下载使用，无需本地构建。
+
+**下载链接**（百度网盘）：
+
+```
+https://pan.baidu.com/s/1l8-1-9PoAEcNrgIq88fs0g?pwd=luzi
+提取码：luzi
+```
+
+**文件信息与校验数据**：
+
+| 项 | 值 |
+|---|---|
+| 文件名 | `LuZ0.3.1-dspark-vllm-gx10-20260824.tar` |
+| 大小 | 11.48 GiB（12,322,040,320 bytes） |
+| 格式 | Docker OCI archive（`docker load` 可直接加载） |
+| **SHA256** | `abad90a9aa631668b0708dd3a2033c9f75be3792fe89390ed51c00549bddab1f` |
+| **MD5** | `28e49f82dcaaae7a78ac69acb9581878` |
+| 镜像 OCI manifest digest | `sha256:85f2149fad0b34c3c3627c9d4a967b244d4fdf6fda7ae22fb934f479cbf90f49`（`docker inspect` 的 RepoDigests 应匹配） |
+| 镜像 config digest | `sha256:d55d355a…`（OCI 存储驱动表示） |
+| 层数 | 42 层（含 FI 0.6.16 树 + ws-dedup overlay + 池化插件 + 全部 ENV） |
+
+**使用方式**：
+
+```bash
+# 1. 下载后先校验（Linux/macOS；Windows 用 certutil 或工具）
+sha256sum LuZ0.3.1-dspark-vllm-gx10-20260824.tar   # 应输出 abad90a9…
+md5sum LuZ0.3.1-dspark-vllm-gx10-20260824.tar      # 应输出 28e49f82…
+
+# 2. 加载镜像
+docker load -i LuZ0.3.1-dspark-vllm-gx10-20260824.tar
+
+# 3. 校验 digest（应与上表一致）
+docker inspect --format '{{index .RepoDigests 0}}' REGISTRY_HOST:5000/anemll/dspark-vllm-gx10:LuZ0.3.1
+
+# 4. 推送到自有 registry（可选）
+docker tag REGISTRY_HOST:5000/anemll/dspark-vllm-gx10:LuZ0.3.1 <your-registry>/anemll/dspark-vllm-gx10:LuZ0.3.1
+docker push <your-registry>/anemll/dspark-vllm-gx10:LuZ0.3.1
+```
+
+> 该镜像与生产 bake 镜像内容一致（`docker save` 流式导出，服务器未落盘中间副本）。权重 `/models`（DeepSeek-V4-Flash-0731）不随镜像，需按 §3.8 独立获取挂载。
+
+### 3.8 权重 / checkpoint（独立获取，不随仓库/镜像）
 
 - 模型：**DeepSeek-V4-Flash-0731**（MXFP4/nvfp4 权重）。
 - 获取方式：独立渠道获取 checkpoint，校验格式（FP8 block linear + MXFP4 experts）后放置 `<INSTALL_DIR>/models/deepseek-v4-flash-0731/`（含 `config.json`）。
