@@ -16,6 +16,8 @@ _server_fetch/
 _head_scan*/
 # private redaction patterns (contains real secrets - never commit)
 redact-patterns.json
+# raw redaction map (contains real secret regexes - never commit; ship REDACTION-MAP.md instead)
+REDACTION-MAP.csv
 # scratch verification logs
 _*.txt
 _build_manifest.txt
