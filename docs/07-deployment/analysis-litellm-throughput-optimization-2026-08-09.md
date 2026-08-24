@@ -3,7 +3,7 @@
 **日期**：2026-08-09
 **工作流**：性能诊断（网关吞吐瓶颈定位与优化评估）
 **参与成员**：主理人（实测诊断）/ Tessa（口径判定）
-**被测对象**：.58 litellm-proxy 1.83.7（单进程 uvicorn，:4000）→ embed 池（.188:8022 + .189:8022）
+**被测对象**：<MGMT_OCTET> litellm-proxy 1.83.7（单进程 uvicorn，:4000）→ embed 池（<MGMT_OCTET>:8022 + <MGMT_OCTET>:8022）
 
 ---
 
@@ -12,7 +12,7 @@
 - **结论：优化空间大，且瓶颈定位清晰——不是 CPU、不是上游计算，而是 litellm 单进程的"每请求固定开销"（HTTP 解析 + 鉴权 + 1024 维 JSON 序列化 + 转发链）**
 - 证据：压测期间 litellm CPU 仅 1%（/proc 精确采样）、上游 embed CPU 2.8%、直连单机 c16=553 req/s，但经网关封顶 ~380-400 req/s
 - **关键发现 1（batch 杠杆）**：batch 16 时条/s 达 1100（vs 单条 239，**4.6× 提升**）→ 业务侧改批量调用即可免费吃到上游能力
-- **关键发现 2（rpm 硬限流）**：PG 虚拟 key `embedding` / `chat-v4-flash` 配置 **rpm_limit=300**，历史日志 14452 条 429 来自业务侧 .60 → **业务侧吞吐被 300 req/min 卡死，这是当前最现实的瓶颈**
+- **关键发现 2（rpm 硬限流）**：PG 虚拟 key `embedding` / `chat-v4-flash` 配置 **rpm_limit=300**，历史日志 14452 条 429 来自业务侧 <MGMT_OCTET> → **业务侧吞吐被 300 req/min 卡死，这是当前最现实的瓶颈**
 - 优化方案分级：P0 解除 rpm（立即可做）→ P1 batch 化（免费 4.6×）→ P2 多 worker（×2-4）→ P3 直连+LB（达上游上限）
 
 ---
@@ -25,8 +25,8 @@
 |---------|---------|------|------|
 | litellm-proxy CPU | docker stats + /proc Δutime | **0.1-1.5%（近 0）** | ❌ 非 CPU 瓶颈 |
 | litellm-pg CPU | docker stats | 0-4% | ❌ 非 DB 瓶颈 |
-| 上游 .188 embed CPU | docker stats | 2.79% | ❌ 非上游计算瓶颈 |
-| 上游 .188 GPU util | nvidia-smi | 0% | ❌ 非 GPU 瓶颈 |
+| 上游 <MGMT_OCTET> embed CPU | docker stats | 2.79% | ❌ 非上游计算瓶颈 |
+| 上游 <MGMT_OCTET> GPU util | nvidia-smi | 0% | ❌ 非 GPU 瓶颈 |
 
 ### 1.2 吞吐封顶实测（经 litellm 双机，master_key）
 
@@ -50,8 +50,8 @@
 
 | 路径 | c16 tps |
 |------|---------|
-| 直连 .188:8022（batch=1） | 553 |
-| 直连 .189:8022（batch=1） | 551 |
+| 直连 <MGMT_OCTET>:8022（batch=1） | 553 |
+| 直连 <MGMT_OCTET>:8022（batch=1） | 551 |
 | 经 litellm 双机（batch=1） | 362-383 |
 
 → 网关单请求链路吃掉上游 ~30% 能力
@@ -70,7 +70,7 @@
 
 ### 2.2 证据
 
-- 历史日志 **14452 条 429**：`Rate limit exceeded. Current limit: 300, Remaining: 0. Limit resets at ...`，来源 <NODE_IP>（.60 业务侧）
+- 历史日志 **14452 条 429**：`Rate limit exceeded. Current limit: 300, Remaining: 0. Limit resets at ...`，来源 <NODE_IP>（<MGMT_OCTET> 业务侧）
 - 本轮测速用 master_key（无 rpm）→ 未触发 429，但**业务侧用 embedding key 时 300 req/min 即被拒**
 - 近 10 分钟无新 429（业务侧当前流量未触顶），但**一旦业务量上升立即触发**
 
@@ -108,7 +108,7 @@ WHERE key_alias IN ('embedding', 'chat-v4-flash');
 
 ### P3 — 直连上游 + 前置 LB（达上游真实上限）
 
-- 若业务量 >1600 req/s：应用层 LB（nginx/haproxy）直连 .188/.189:8022，绕过 litellm 单点
+- 若业务量 >1600 req/s：应用层 LB（nginx/haproxy）直连 <MGMT_OCTET>/<MGMT_OCTET>:8022，绕过 litellm 单点
 - 预期：达上游上限（batch=1 时 ~1100 req/s 双机；batch 16 时更高）
 - 代价：丢失 litellm 的鉴权/监控/fallback 能力 → 需在 LB 层补鉴权
 - 备选：litellm 多实例（同 config 起 2 容器 + nginx 前置），保留网关能力且横向扩展
@@ -128,7 +128,7 @@ WHERE key_alias IN ('embedding', 'chat-v4-flash');
 
 ## 5. 局限与说明
 
-- 本次测速客户端与网关同机（.58），网络 RTT 未计入；真实业务跨机延迟略高
+- 本次测速客户端与网关同机（<MGMT_OCTET>），网络 RTT 未计入；真实业务跨机延迟略高
 - batch 16 时 p50=110ms（单请求聚合 16 条），业务需评估单请求延迟预算
 - 429 历史日志 14452 条为累计（跨多日），非单次事件
 - master_key 不受 rpm 限制，本报告吞吐上限数据（380-400）为"解除限流后"的网关能力基准
@@ -138,10 +138,10 @@ WHERE key_alias IN ('embedding', 'chat-v4-flash');
 
 ## 📚 数据来源
 
-- 实测：.58 /tmp/embed_bench_litellm.py（并发/batch 压测）+ /proc CPU 采样 + docker stats
-- 配置：.58 /home/<USER>/litellm/config.yaml（router_settings / litellm_settings）
+- 实测：<MGMT_OCTET> /tmp/embed_bench_litellm.py（并发/batch 压测）+ /proc CPU 采样 + docker stats
+- 配置：<MGMT_OCTET> /home/<USER>/litellm/config.yaml（router_settings / litellm_settings）
 - 数据库：litellm-pg `LiteLLM_VerificationToken`（rpm/tpm 字段，5 个 key）
-- 日志：litellm-proxy 容器日志（429 计数 14452、来源 .60）
+- 日志：litellm-proxy 容器日志（429 计数 14452、来源 <MGMT_OCTET>）
 - 本地副本：_archive_scratch/bench_B/embed_bench_data.py（8/8 测速基线）
 
 ---

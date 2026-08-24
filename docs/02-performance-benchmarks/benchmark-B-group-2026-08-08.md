@@ -3,7 +3,7 @@
 **日期**：2026-08-08
 **工作流**：测试与性能基准（54 组合全矩阵，含 32768 分界点补测）
 **参与成员**：Tessa（协议设计与判定）/ 主理人（执行与数据汇编）
-**被测集群**：B 组 node01=.55=<NODE_IP>（head，TP2 rank0）+ node01=.59=<NODE_IP>（worker）
+**被测集群**：B 组 node01=<MGMT_OCTET>=<NODE_IP>（head，TP2 rank0）+ node01=<MGMT_OCTET>=<NODE_IP>（worker）
 **部署口径**：anemll 0.2.1 TP2、master <NODE_IP>:25055、GID_INDEX=4、NCCL 2.30.7、port 8001
 
 ---

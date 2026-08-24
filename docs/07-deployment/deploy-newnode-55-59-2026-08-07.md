@@ -1,4 +1,4 @@
-# 新增节点 .55/.59 环境配置与业务分发机制 综合交付报告
+# 新增节点 <MGMT_OCTET>/<MGMT_OCTET> 环境配置与业务分发机制 综合交付报告
 
 **日期**：2026-08-07
 **工作流**：工作流 4（部署前检查 Go/No-Go）+ 工作流 2（系统设计）综合
@@ -8,10 +8,10 @@
 
 ## 📌 TL;DR（执行摘要）
 
-- 新增两台 DGX Spark（.55 gx10-3f4d / .59 gx10-31c4，931G 小盘、仅 Wi-Fi），已按 worker .58 基准完成全部环境配置，并落地"镜像/权重集中 .58 大容量中心、小盘节点按需拉取"的业务分发机制，**四机集群形成**
+- 新增两台 DGX Spark（<MGMT_OCTET> gx10-3f4d / <MGMT_OCTET> gx10-31c4，931G 小盘、仅 Wi-Fi），已按 worker <MGMT_OCTET> 基准完成全部环境配置，并落地"镜像/权重集中 <MGMT_OCTET> 大容量中心、小盘节点按需拉取"的业务分发机制，**四机集群形成**
 - 严重度分布：🔴严重 2 项（已修复/降级）/ 🟠高 6 项（已修复 5 项）/ 🟡中 8 项（部分修复，记录待办）/ 🟢低 4 项
-- 阻塞项 0（Tessa 验收 3 项阻塞条件 A/B 已闭环、C 首拉运行中）；`.55 复查通过`、`.59 有条件通过（条件在闭环中）`
-- 核心能力闭环：镜像拉取、权重 rsync 同步、断点续传、sha256 硬校验、LRU 清理、备份（.58→.60 40G）全部实测通过
+- 阻塞项 0（Tessa 验收 3 项阻塞条件 A/B 已闭环、C 首拉运行中）；`<MGMT_OCTET> 复查通过`、`<MGMT_OCTET> 有条件通过（条件在闭环中）`
+- 核心能力闭环：镜像拉取、权重 rsync 同步、断点续传、sha256 硬校验、LRU 清理、备份（<MGMT_OCTET>→<MGMT_OCTET> 40G）全部实测通过
 
 ---
 
@@ -19,7 +19,7 @@
 
 | 项目 | 内容 |
 |------|------|
-| 整体评级 | 🟡 有条件通过（.55 基本通过 / .59 条件闭环中） |
+| 整体评级 | 🟡 有条件通过（<MGMT_OCTET> 基本通过 / <MGMT_OCTET> 条件闭环中） |
 | 阻塞项数量 | 0（3 项放行条件：A✅ B✅ C⏳ 156G 首拉运行中） |
 | 关键行动项 | 10 条（见行动清单） |
 | 建议下一步 | 156G 首拉完成后做最终校验；组网（有线/RoCE）后同步源切 10.100.136.x 提速；实施 Cody 加固项（防火墙/认证/口令轮换） |
@@ -28,28 +28,28 @@
 
 ## 1. 需求与目标
 
-- **需求**：新增服务器参考现有 worker 完成环境配置；磁盘较小（931G vs .58 的 3.6T），采用业务分发机制，镜像与权重尽量只在大容量服务器（.58）存储
-- **目标**：.55/.59 环境对标 worker 基线；镜像按需拉取、权重按需同步；机制在当前 Wi-Fi 链路可用、组网后自动受益；形成可复用新增节点 SOP
-- **非目标**：本期不做 .55/.59 与集群有线/RoCE 组网、不做 TP 扩展（小盘节点为独立服务节点）
+- **需求**：新增服务器参考现有 worker 完成环境配置；磁盘较小（931G vs <MGMT_OCTET> 的 3.6T），采用业务分发机制，镜像与权重尽量只在大容量服务器（<MGMT_OCTET>）存储
+- **目标**：<MGMT_OCTET>/<MGMT_OCTET> 环境对标 worker 基线；镜像按需拉取、权重按需同步；机制在当前 Wi-Fi 链路可用、组网后自动受益；形成可复用新增节点 SOP
+- **非目标**：本期不做 <MGMT_OCTET>/<MGMT_OCTET> 与集群有线/RoCE 组网、不做 TP 扩展（小盘节点为独立服务节点）
 
 ## 2. 节点清单与现状（2026-08-07 实测）
 
 | 节点 | IP | 角色 | 磁盘 | 网络 | 状态 |
 |------|-----|------|------|------|------|
-| .58 | <NODE_IP> | worker（大容量中心） | 3.6T（2.4T 可用） | RoCE + Wi-Fi | registry:2 :5000（27 repos）/ NFS 导出 312G / embed 8020 等 14 容器 |
-| .60 | <NODE_IP> | head | 3.6T（2.8T 可用） | RoCE + Wi-Fi | 关键镜像备份端（vllm 21G + embed 19G） |
-| .55 | <NODE_IP> | 新增小盘节点 | 931G（821G 可用） | 仅 Wi-Fi | gx10-3f4d；已配置；156G 大权重同步中（9.5G+） |
-| .59 | <NODE_IP> | 新增小盘节点 | 931G（822G 可用） | 仅 Wi-Fi | gx10-31c4；已配置完成；embed 闭环 + 156G 首拉中（834M+） |
+| <MGMT_OCTET> | <NODE_IP> | worker（大容量中心） | 3.6T（2.4T 可用） | RoCE + Wi-Fi | registry:2 :5000（27 repos）/ NFS 导出 312G / embed 8020 等 14 容器 |
+| <MGMT_OCTET> | <NODE_IP> | head | 3.6T（2.8T 可用） | RoCE + Wi-Fi | 关键镜像备份端（vllm 21G + embed 19G） |
+| <MGMT_OCTET> | <NODE_IP> | 新增小盘节点 | 931G（821G 可用） | 仅 Wi-Fi | gx10-3f4d；已配置；156G 大权重同步中（9.5G+） |
+| <MGMT_OCTET> | <NODE_IP> | 新增小盘节点 | 931G（822G 可用） | 仅 Wi-Fi | gx10-31c4；已配置完成；embed 闭环 + 156G 首拉中（834M+） |
 
-## 3. 环境配置实施记录（.55/.59 同构，对标 .58）
+## 3. 环境配置实施记录（<MGMT_OCTET>/<MGMT_OCTET> 同构，对标 <MGMT_OCTET>）
 
-| 类别 | 配置项 | .55 | .59 |
+| 类别 | 配置项 | <MGMT_OCTET> | <MGMT_OCTET> |
 |------|--------|-----|-----|
 | docker | buildkit 损坏库清理 → active/enabled 29.2.1 | ✅ | ✅ |
 | 用户 | <USER> 入 docker 组（gid 988 对齐，免 sudo 验证） | ✅ | ✅ |
 | 基础 | 12 项工具（rsync/nfs-common/htop 等）+ dpkg 中断修复 | ✅ | ✅ |
-| 时区/NTP | Etc/UTC 对齐 .58；systemd-timesyncd 同步确认 | ✅ | ✅ |
-| daemon.json | log 轮转 100m×3 + insecure-registries(.58:5000) + mirror(daocloud/dockerproxy) + nvidia runtime | ✅ | ✅ |
+| 时区/NTP | Etc/UTC 对齐 <MGMT_OCTET>；systemd-timesyncd 同步确认 | ✅ | ✅ |
+| daemon.json | log 轮转 100m×3 + insecure-registries(<MGMT_OCTET>:5000) + mirror(daocloud/dockerproxy) + nvidia runtime | ✅ | ✅ |
 | NVIDIA | nvidia-ctk runtime + `--gpus all` 冒烟（GB10/580.173.02） | ✅ | ✅ |
 | SSH | 本机免密 + 密钥对 + 四机互信 + known_hosts 预置 + Windows 别名 gx10-55/gx10-59 | ✅ | ✅ |
 | NFS | /mnt/models-nfs ro 挂载（3 模型可见）+ fstab 持久化（_netdev,nofail） | ✅ | ✅ |
@@ -58,30 +58,30 @@
 
 ## 4. 业务分发机制（Archi 设计，ADR 1-5）
 
-- **ADR-1**：.58 私有 registry:2 :5000（/data/registry）→ 按需 pull（备选 save/load、mirror、NFS 共享被否）
-- **ADR-2**：镜像 tag 去上游域名保留 repo:tag；.55/.59 清理用 allowlist + prune until=24h
+- **ADR-1**：<MGMT_OCTET> 私有 registry:2 :5000（/data/registry）→ 按需 pull（备选 save/load、mirror、NFS 共享被否）
+- **ADR-2**：镜像 tag 去上游域名保留 repo:tag；<MGMT_OCTET>/<MGMT_OCTET> 清理用 allowlist + prune until=24h
 - **ADR-3**：权重双通道 = NFS 只读冷访问（/mnt/models-nfs）+ rsync 增量热同步（<MODELS_DIR> + LRU 200G 清理）
 - **ADR-4**：安全模型 v1 = 内网信任（无 TLS/认证），加固留后续
-- **ADR-5**：单点缓解 v1 = 关键镜像 docker save 备份 .60
+- **ADR-5**：单点缓解 v1 = 关键镜像 docker save 备份 <MGMT_OCTET>
 
 ### 4.1 实测闭环（全部 ✅）
 
 | 链路 | 验证结果 |
 |------|---------|
-| 镜像流 | 33 源镜像→27 repos 推送成功（_catalog 27）；.55/.59 pull→run（redis 7.4.10）→rmi 零残留 |
-| 权重流 | sync-model.sh embed 1.2G DONE + .last-used（.55/.59 均闭环） |
+| 镜像流 | 33 源镜像→27 repos 推送成功（_catalog 27）；<MGMT_OCTET>/<MGMT_OCTET> pull→run（redis 7.4.10）→rmi 零残留 |
+| 权重流 | sync-model.sh embed 1.2G DONE + .last-used（<MGMT_OCTET>/<MGMT_OCTET> 均闭环） |
 | 断点续传 | 中断 296MB → 恢复 → **SHA256 与源一致**（0437e45c...） |
-| 完整性校验 | 清单格式修复（相对路径+排除自身）；**.55/.59 sha256sum -c 全通过；翻转 1 字节→校验失败（硬校验）** |
+| 完整性校验 | 清单格式修复（相对路径+排除自身）；**<MGMT_OCTET>/<MGMT_OCTET> sha256sum -c 全通过；翻转 1 字节→校验失败（硬校验）** |
 | 清理流 | cleanup skip 分支正常；timer 双机手动触发 OK；与 sync 共用 flock 防误删 |
-| 备份流 | .58 save vllm 21G + embed 19G → scp .60 完成（ALL_DONE 17:33 UTC）；**sha256 对账双机一致**（vllm `8222d7b1...` / embed `3340285b...`） |
-| 大权重 | .55 156G 同步中（9.5G+，14-16MB/s 稳定）；.59 首拉中（834M+，17-34MB/s）；双节点并发带宽正常 |
+| 备份流 | <MGMT_OCTET> save vllm 21G + embed 19G → scp <MGMT_OCTET> 完成（ALL_DONE 17:33 UTC）；**sha256 对账双机一致**（vllm `8222d7b1...` / embed `3340285b...`） |
+| 大权重 | <MGMT_OCTET> 156G 同步中（9.5G+，14-16MB/s 稳定）；<MGMT_OCTET> 首拉中（834M+，17-34MB/s）；双节点并发带宽正常 |
 
 ## 5. 安全审查（Cody，20 条发现）与修复状态
 
 | # | 严重度 | 问题 | 状态 |
 |---|--------|------|------|
 | 1 | 🔴 | registry 无认证无 TLS，0.0.0.0 暴露 | ⏳ 待加固（内网信任边界已记录；建议 htpasswd+TLS/防火墙） |
-| 2 | 🔴 | 凭据明文落盘 + .55/.58 同口令 | ✅ 临时脚本已清理；⏳ 口令轮换待办（建议各机差异化+禁密码登录） |
+| 2 | 🔴 | 凭据明文落盘 + <MGMT_OCTET>/<MGMT_OCTET> 同口令 | ✅ 临时脚本已清理；⏳ 口令轮换待办（建议各机差异化+禁密码登录） |
 | 3 | 🟠 | sync-model MODEL 未校验（路径穿越） | ✅ **已修复**（白名单校验） |
 | 4 | 🟠 | SSH 私钥无口令、互信无 from 限制 | ⏳ 记录待办（收窄互信/密钥轮换） |
 | 5 | 🟠 | allowlist 空操作（prune 语义） | ✅ **已修复**（prune until=24h） |
@@ -101,8 +101,8 @@
 
 ## 6. 验收结论（Tessa）
 
-- **.55**：基本通过，遗留收尾项不阻塞（H1 大权重同步进行中、M1 校验机制已修复✅、M2 备份对账修复中）
-- **.59**：有条件通过，13 项 ✅10 ⚠️3（NTP 已实测确认 ✅、校验机制已实测 ✅、首拉运行中 ⏳）；三放行条件 A✅ B✅ C⏳
+- **<MGMT_OCTET>**：基本通过，遗留收尾项不阻塞（H1 大权重同步进行中、M1 校验机制已修复✅、M2 备份对账修复中）
+- **<MGMT_OCTET>**：有条件通过，13 项 ✅10 ⚠️3（NTP 已实测确认 ✅、校验机制已实测 ✅、首拉运行中 ⏳）；三放行条件 A✅ B✅ C⏳
 
 ---
 
@@ -110,10 +110,10 @@
 
 | # | 行动 | 负责角色 | 紧急度 | 预期完成 |
 |---|------|---------|--------|---------|
-| 1 | 监控 .55/.59 156G 首拉直至完成，完成后再跑 sha256sums.txt 硬校验（deepseek 清单需先在 .58 生成） | SRE | P0 | 1-3 天（Wi-Fi 带宽） |
-| 2 | 备份 sha256 对账确认（.58 vs .60 两 tar），并做一次 `tar -tf` 抽查 | SRE | P0 | 今日 |
-| 3 | 口令轮换：.55/.58 差异化强口令；sshd 禁 PasswordAuthentication；清除管理机残留明文凭据 | SRE | P0 | 1 周内 |
-| 4 | 生成 deepseek 156G 校验清单（.58 源端，find+sha256sum 约 30-60 分钟） | SRE | P1 | 同步完成前 |
+| 1 | 监控 <MGMT_OCTET>/<MGMT_OCTET> 156G 首拉直至完成，完成后再跑 sha256sums.txt 硬校验（deepseek 清单需先在 <MGMT_OCTET> 生成） | SRE | P0 | 1-3 天（Wi-Fi 带宽） |
+| 2 | 备份 sha256 对账确认（<MGMT_OCTET> vs <MGMT_OCTET> 两 tar），并做一次 `tar -tf` 抽查 | SRE | P0 | 今日 |
+| 3 | 口令轮换：<MGMT_OCTET>/<MGMT_OCTET> 差异化强口令；sshd 禁 PasswordAuthentication；清除管理机残留明文凭据 | SRE | P0 | 1 周内 |
+| 4 | 生成 deepseek 156G 校验清单（<MGMT_OCTET> 源端，find+sha256sum 约 30-60 分钟） | SRE | P1 | 同步完成前 |
 | 5 | 防火墙基线：三机 ufw 默认 deny，放行 22/5000/NFS（<NODE_IP>/24 + <NODE_IP>/16） | SRE | P1 | 2 周内 |
 | 6 | registry 加固：htpasswd 认证 + TLS（或迁移 Harbor） | SRE | P1 | 2 周内 |
 | 7 | distribution.log 配置 logrotate（daily ×14） | SRE | P2 | 1 周内 |
@@ -125,10 +125,10 @@
 
 ## ⚠️ 待完善 / 已知局限
 
-- .55/.59 仅 Wi-Fi：大权重首拉 1.5-3h（已用重试+断点续传兜底）；组网（有线/RoCE）是带宽瓶颈治本方案
+- <MGMT_OCTET>/<MGMT_OCTET> 仅 Wi-Fi：大权重首拉 1.5-3h（已用重试+断点续传兜底）；组网（有线/RoCE）是带宽瓶颈治本方案
 - 四机并发同步存在带宽竞争（已实测双节点并发可工作，吞吐各 14-34MB/s；多节点同时首拉需错峰）
-- deepseek 156G 校验清单未生成（P1 行动项）；.60 备份未做 docker load 干跑
-- registry/NFS 单点依赖 .58（.60 有 40G 备份但未做恢复演练）
+- deepseek 156G 校验清单未生成（P1 行动项）；<MGMT_OCTET> 备份未做 docker load 干跑
+- registry/NFS 单点依赖 <MGMT_OCTET>（<MGMT_OCTET> 有 40G 备份但未做恢复演练）
 - 双 mirror（daocloud/dockerproxy）可用性未做故障切换实测；NTP polkit 需手工 set-ntp 时受限（默认 timesyncd 已同步）
 - timer 首次自动触发（每日 00:00 UTC）尚未观察实战执行（已手动触发验证）
 
@@ -139,7 +139,7 @@
 - **Archi（架构师）**：业务分发机制架构设计方案（ADR-1~5、拓扑、SOP 骨架）——消息回传全文
 - **Rex（SRE）**：环境配置基线清单（8 大类 40+ 检查项）+ 分发运维检查清单——消息回传全文
 - **Cody（代码审查师）**：安全审查报告（20 条发现表 + 修复建议）——消息回传第一部分，TOP3/加固项并入本报告 §5
-- **Tessa（测试专家）**：.55 验收评审（有条件通过）+ .59/.55 复查验收（6 节正文）——消息回传全文
+- **Tessa（测试专家）**：<MGMT_OCTET> 验收评审（有条件通过）+ <MGMT_OCTET>/<MGMT_OCTET> 复查验收（6 节正文）——消息回传全文
 - **Docu（技术文档师）**：《环境配置手册（四机版）》《分发机制操作手册（四机版）》——消息回传全文（落盘见 deliverables）
 - **实测数据**：SSH 实机采集（2026-08-06 22:00 - 2026-08-07 01:00）
 

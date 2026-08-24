@@ -36,7 +36,7 @@
 | 1 | 🟠高 | 配置基线 | Rex | **嵌入后端实况运行在 CPU 模式**（torch==2.13.0+cpu、health `device:cpu`、存在 rollback_cpu.sh），而既定基线为 GPU Qwen3-Embedding。端点正常但能力/性能偏离基线 | 落地 embed-qwen3-gpu 真 GPU 并回归；或正式将 CPU 定为基线并更新文档，消除漂移 |
 | 2 | 🟠高 | 配置/脚本 | Cody+Rex | **工具调用参数未落地归档启动脚本**：start_{head,worker}_E.sh 实测无 `--enable-auto-tool-choice`/`--tool-call-parser`；且 fix_toolcall.py 只在含 `--gpu-memory-utilization 0.80` 的行后插入，而归档 E 脚本实为 0.9 → **补丁脱靶**。归档≠实况，重建/回滚会丢失工具调用能力 | 以实况为准重写启动脚本（正确 gpu-mem + 工具参数），建立单一事实源 |
 | 3 | 🟠高 | 安全 | Cody | **凭证散落 + 日志泄露**：SERVE_CMD 硬编码 `--api-key` 且 `echo "$SERVE_CMD"` 把 key 打进日志；内部/推送 key 散落 4+ 处（含 embed_main.py 源码硬编码 EMBED_API_KEY 默认值），轮换易漏 | key 全面 env/secret 化，代码零硬编码，echo 时脱敏 |
-| 4 | 🟠高 | 拓扑/文档 | Rex | **worker 拓扑 IP 记录漂移**：基线记录 worker=<NODE_IP>，但全部证据为 **<NODE_IP>**（route_worker src .58、ping52 .58、ledger worker58） | 修正 worker 实际 IP 并统一拓扑记录，确认单点事实源 |
+| 4 | 🟠高 | 拓扑/文档 | Rex | **worker 拓扑 IP 记录漂移**：基线记录 worker=<NODE_IP>，但全部证据为 **<NODE_IP>**（route_worker src <MGMT_OCTET>、ping52 <MGMT_OCTET>、ledger worker58） | 修正 worker 实际 IP 并统一拓扑记录，确认单点事实源 |
 | 5 | 🟡中 | 测试证据 | Tessa | **工具调用全流程证据缺失**：gateway 200 有声称，但原始 `tool_calls`/`get_weather` JSON 响应未持久化，且「回传结果→二次完成」round-trip 未确认 | P0 补 1 次全流程：记录 8003 带 tools+auto 原始 JSON 存证 + 二轮回传 |
 | 6 | 🟡中 | 测试证据 | Tessa | **压测未落地**：stress_test.py 存在但无任何运行输出，无高并发/p95 | P0 运行 stress_test.py（并发≥20，采 p95/错误率/超时）并存输出 |
 | 7 | 🟡中 | 测试证据 | Tessa | **当前 600k 配置边界未复测**：max_len=600000，但 benchmark 明言未触及上限；`max_tokens=601000→400` 与 600k 长输入单请求均未实测（边界 400 是旧 800k 环境测得） | P1 在当前配置下补边界回归（601000→400；600k 长输入） |
@@ -86,7 +86,7 @@
 | 1 | 消除嵌入式 GPU↔CPU 基线漂移：落地 embed-qwen3-gpu 真 GPU 并回归，或正式将 CPU 定为基线并更新文档 | SRE | P0 | 本周 |
 | 2 | 以实况为单一事实源重写归档启动脚本（正确 gpu-mem + `--enable-auto-tool-choice` + `--tool-call-parser deepseek_v4`），防重建/回滚丢工具调用 | SRE+Cody | P0 | 本周 |
 | 3 | 补工具调用全流程存证 + 二轮回传；运行 stress_test.py（并发≥20 采 p95） | Testing | P0 | 本周 |
-| 4 | 密钥全面 env/secret 化，启动脚本 echo 脱敏；修正 worker 实际 IP 拓扑记录（.58 覆盖 .61） | Cody+SRE | P1 | 2 周内 |
+| 4 | 密钥全面 env/secret 化，启动脚本 echo 脱敏；修正 worker 实际 IP 拓扑记录（<MGMT_OCTET> 覆盖 .61） | Cody+SRE | P1 | 2 周内 |
 | 5 | 统一 `/v1/responses` 与 `/v1/chat/completions` 严格 404 校验；`_DROP_HEADERS` 扩充；鉴权改恒定时间比较 | Cody | P1 | 2 周内 |
 
 ---
@@ -94,7 +94,7 @@
 ## ⚠️ 待完善 / 已知局限
 
 - 本核查为**只读证据审计**：嵌入后端 GPU→CPU、vllm-envE 双机真机重启演练、上游故障注入等**未做实机验证**，仅据配置/日志判断。
-- worker 拓扑 IP（.58 vs .61）存在记录争议，需现场确认真实地址。
+- worker 拓扑 IP（<MGMT_OCTET> vs .61）存在记录争议，需现场确认真实地址。
 - 工具调用压测、600k 边界、上游故障容错等「声称已验」项缺可审计的原始输出文件，需补证。
 - 8001 早期(8/2) health 失败为重启窗口瞬时态，非当前故障。
 

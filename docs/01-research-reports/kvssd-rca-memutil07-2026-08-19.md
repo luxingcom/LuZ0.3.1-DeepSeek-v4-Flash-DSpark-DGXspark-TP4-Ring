@@ -22,10 +22,10 @@
 ### 接管时状态
 | 节点 | rank | 状态 |
 |---|---|---|
-| 01(.186) | rank0 head | `vllm-tp4-rank0` **Exited(1)**，TCPStore :25999 未监听 |
-| 02(.187) | rank1 | `vllm-tp4-rank1` Up 4min(healthy)，但日志处于 TCPStore connect timeout 重试 |
-| 03(.188) | rank3 | `vllm-tp4-rank3` Up 4min(healthy)，同左（十分钟前刚重启） |
-| 04(.189) | rank2 | `vllm-tp4-rank2` Up 4min(healthy)，同左 |
+| 01(<MGMT_OCTET>) | rank0 head | `vllm-tp4-rank0` **Exited(1)**，TCPStore :25999 未监听 |
+| 02(<MGMT_OCTET>) | rank1 | `vllm-tp4-rank1` Up 4min(healthy)，但日志处于 TCPStore connect timeout 重试 |
+| 03(<MGMT_OCTET>) | rank3 | `vllm-tp4-rank3` Up 4min(healthy)，同左（十分钟前刚重启） |
+| 04(<MGMT_OCTET>) | rank2 | `vllm-tp4-rank2` Up 4min(healthy)，同左 |
 
 - 3 个 worker 容器均在 `[c10d] The client socket has timed out after 300000ms while trying to connect to (<NODE_IP>, 25999)` 重试态——**health=200/healthy 为假阳性**（healthcheck 仅 `pgrep VLLM::EngineCore`）。
 - head 05:01 启动失败根因：rank0 与 rank1(02) gloo `is_in_the_same_node` 建连时 `Connection closed by peer [<NODE_IP>]:44227`——02 当时容器正被重建，rank 集合不同步（冷启动互杀）。

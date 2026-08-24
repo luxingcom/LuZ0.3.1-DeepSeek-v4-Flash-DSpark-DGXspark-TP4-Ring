@@ -122,7 +122,7 @@
 - NCCL 2.30.7 源码编译 **ring-only 补丁 v2**（`/opt/nccl-ringonly`，LD_PRELOAD，`NCCL_IB_PEER_HCA` per-peer 对口）
 - 推理镜像 **anemll 0.2.1**（vllm-gb10 系，follower bug 禁用）
 - TP4 每节点 1 rank，启动编排 `start_tp4_cluster.sh`
-- embed 独立 litellm 池（`.188:8022` / `.189:8022`）
+- embed 独立 litellm 池（`<MGMT_OCTET>:8022` / `<MGMT_OCTET>:8022`）
 - TP4 于 **08-11 上线稳定**
 
 ---
@@ -226,7 +226,7 @@
 | ⑤ | NCCL_NET_GDR_LEVEL=0 保留 |
 | ⑥ | start_tp4_cluster.sh head-first / GPU-gate≤180s / 对端门禁 / 快速失败正常 |
 | ⑦ | P0 自检全绿 |
-| ⑧ | embed 双栈 .188:8022 / .189:8022 回归 |
+| ⑧ | embed 双栈 <MGMT_OCTET>:8022 / <MGMT_OCTET>:8022 回归 |
 | ⑨ | 新特性（SP / DSpark 投机）默认关闭 |
 | ⑩ | 回退演练 <30min、embed 原子回退 |
 
@@ -256,7 +256,7 @@
 | 2 | 单节点预验证：LD_PRELOAD 对 PyTorch 2.13 torch_nccl 符号截获 + ring-only 行为回归（ncclTopoDump 环拓扑核对） | Archi / Rex | P0 | 0.27 镜像就绪后 1-2 天 |
 | 3 | 跟进 vllm-gb10/anemll 0.27 镜像链，评估「社区镜像基线 + 源码补编译 0.27.1」自建路径（3-5 人日预算） | Rex | P1 | 2-4 周内 |
 | 4 | 排查启动脚本/配置中 partial-prefill flags、CPUOffloadingSpec 改名、Transformers v5 依赖引用 | Archi | P1 | 升级前 |
-| 5 | embed 双栈（.188:8022 / .189:8022）全量回归，确认音频/EP 路径不踩 qwen2audio / nixl_ep 回归 | Rex | P1 | 随镜像重建 |
+| 5 | embed 双栈（<MGMT_OCTET>:8022 / <MGMT_OCTET>:8022）全量回归，确认音频/EP 路径不踩 qwen2audio / nixl_ep 回归 | Rex | P1 | 随镜像重建 |
 | 6 | 升级后先开 MXFP4 KV + JIT warmup，SP 显式禁用；DSpark 投机仅代码负载 + 内存满足时单模型试点 | Archi | P1 | 升级后首维护窗口 |
 | 7 | 回退演练 <30min：镜像不可变 tag 切换 + embed 原子回退 | Rex | P2 | 升级前完成一次演练 |
 

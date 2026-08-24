@@ -33,8 +33,8 @@
 
 | 节点 | 管理口(enP7s7) | RoCE IP | mlx5 设备（ACTIVE） | NCCL 版本 |
 |---|---|---|---|---|
-| 01 | <NODE_IP> | <NODE_IP> / 137.1（L1） | rocep1s0f1、roceP2p1s0f1 | 2.30.7 ✓ |
-| 02 | <NODE_IP> | <NODE_IP> / 137.2（L1）、<NODE_IP>/13（L2） | 4 口全 ACTIVE | 2.30.7 ✓ |
+| 01 | <NODE_IP> | <NODE_IP> / <RING_SUBNET>（L1） | rocep1s0f1、roceP2p1s0f1 | 2.30.7 ✓ |
+| 02 | <NODE_IP> | <NODE_IP> / <RING_SUBNET>（L1）、<NODE_IP>/13（L2） | 4 口全 ACTIVE | 2.30.7 ✓ |
 | 04 | <NODE_IP> | <NODE_IP> / 14（L2） | rocep1s0f0、roceP2p1s0f0（仅 L2） | 2.30.7 ✓ |
 
 - 拓扑确认：01↔02 直连 L1、02↔04 直连 L2；**01↔04 无任何直连 IB 路径**（ip route get 走管理网网关，RoCE ping 100% 丢包）

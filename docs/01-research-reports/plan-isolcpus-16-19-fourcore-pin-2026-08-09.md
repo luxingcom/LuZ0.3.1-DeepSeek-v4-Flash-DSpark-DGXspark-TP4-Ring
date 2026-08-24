@@ -12,10 +12,10 @@
 
 | 节点 | IP | 90-isolcpus.cfg | /proc/cmdline 生效 | /sys isolated | 可调度核 |
 |---|---|---|---|---|---|
-| node01 | .186 | `isolcpus=18-19 nohz_full=18-19 rcu_nocbs=18-19` | ✅ 已生效 | 18-19 | 0-17（18 核） |
-| node01 | .187 | 同上 | ✅ 已生效 | 18-19 | 0-17（18 核） |
-| node01 | .188 | **无** | ❌ 无 isolcpus | 空 | 0-19（20 核） |
-| node01 | .189 | **无** | ❌ 无 isolcpus | 空 | 0-19（20 核） |
+| node01 | <MGMT_OCTET> | `isolcpus=18-19 nohz_full=18-19 rcu_nocbs=18-19` | ✅ 已生效 | 18-19 | 0-17（18 核） |
+| node01 | <MGMT_OCTET> | 同上 | ✅ 已生效 | 18-19 | 0-17（18 核） |
+| node01 | <MGMT_OCTET> | **无** | ❌ 无 isolcpus | 空 | 0-19（20 核） |
+| node01 | <MGMT_OCTET> | **无** | ❌ 无 isolcpus | 空 | 0-19（20 核） |
 
 - grub.d 目录含 NVIDIA 出厂 cfg（iommu/earlycon/pci 等），90-isolcpus.cfg 为独立新增，追加到 GRUB_CMDLINE_LINUX_DEFAULT 尾部。
 - 引导方式：**UEFI**；update-grub 可用（/usr/sbin/update-grub）。
@@ -32,7 +32,7 @@
 | 服务 | 端口 | 形态 | restart policy | 重启后自动恢复 |
 |---|---|---|---|---|
 | **litellm-proxy（生产在用）** | 4000 | 容器 host 网络 | **unless-stopped** | ✅ docker 自动拉起 |
-| responses_gateway（8003→.60:8001） | 8003 | systemd **user** service | Linger=**yes** + enabled + Restart=always | ✅ 自动恢复 |
+| responses_gateway（8003→<MGMT_OCTET>:8001） | 8003 | systemd **user** service | Linger=**yes** + enabled + Restart=always | ✅ 自动恢复 |
 | registry（镜像仓库） | 5000 | 容器 | always | ✅ |
 | aicad compose 栈（prometheus/grafana/postgres/redis/neo4j/chromadb/alertmanager/minio） | 8191/3000/8082/6379/7474/8180/9093/19000… | compose（docker compose v5） | unless-stopped/always | ✅ |
 | dcgm-exporter / node-exporter | 9400/9100 | 容器 | unless-stopped | ✅ |
@@ -49,7 +49,7 @@
 | 03 | anemll-embed-8022（生产 embed, 8022） | RoCE 四口全 NO-CARRIER（未接线），无 isolcpus |
 | 04 | anemll-embed-8022（生产 embed, 8022, unless-stopped） | **⚠️ L2 地址 <NODE_IP>/14 未持久化**；无 isolcpus |
 
-- litellm 上游 embed 指向 **.188:8022 和 .189:8022**（03/04 均在生产 embed，互为兜底）。
+- litellm 上游 embed 指向 **<MGMT_OCTET>:8022 和 <MGMT_OCTET>:8022**（03/04 均在生产 embed，互为兜底）。
 
 ### 1.5 重启后需复核的持久化项（现状均已就绪）
 
@@ -88,11 +88,11 @@ GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT isolcpus=16-19 nohz_full
 
 | # | 节点 | 改什么 | 影响 | 回滚 |
 |---|---|---|---|---|
-| C1 | **02**（.187） | isolcpus 18-19→16-19 + update-grub + 重启 | ① **litellm(4000) 生产中断约 5-15 分钟**（重启+容器自动拉起；unless-stopped 保证恢复）② 监控/Grafana 断档同窗口 ③ registry/DB 断档同窗口 ④ **L2 <NODE_IP>/13 地址丢失需补回** ⑤ responses_gateway(8003) 自动恢复 | 恢复 cfg 备份 + update-grub + 重启（同样窗口） |
-| C2 | **01**（.186） | 同上 | ① 无业务生产，仅监控短断档 ② aicad-fw-25000 自动恢复 ③ 10.100.x 自动恢复 | 同上 |
-| C3 | **04**（.189） | **新建** isolcpus=16-19 + update-grub + 重启 | ① embed(8022) 中断约 5-15 分钟（**有 03 embed 兜底**，litellm 上游双活）② **L2 <NODE_IP>/14 地址丢失需补回** | 删除文件 + update-grub + 重启 |
+| C1 | **02**（<MGMT_OCTET>） | isolcpus 18-19→16-19 + update-grub + 重启 | ① **litellm(4000) 生产中断约 5-15 分钟**（重启+容器自动拉起；unless-stopped 保证恢复）② 监控/Grafana 断档同窗口 ③ registry/DB 断档同窗口 ④ **L2 <NODE_IP>/13 地址丢失需补回** ⑤ responses_gateway(8003) 自动恢复 | 恢复 cfg 备份 + update-grub + 重启（同样窗口） |
+| C2 | **01**（<MGMT_OCTET>） | 同上 | ① 无业务生产，仅监控短断档 ② aicad-fw-25000 自动恢复 ③ 10.100.x 自动恢复 | 同上 |
+| C3 | **04**（<MGMT_OCTET>） | **新建** isolcpus=16-19 + update-grub + 重启 | ① embed(8022) 中断约 5-15 分钟（**有 03 embed 兜底**，litellm 上游双活）② **L2 <NODE_IP>/14 地址丢失需补回** | 删除文件 + update-grub + 重启 |
 | C3' | **04 不加（备选）** | 不动作 | 04 绑核落到普通核（无 nohz_full/rcu_nocbs 保护），T2_24/对角数据降权（与现状一致）；零中断 | — |
-| C4 | **03**（.188） | **不加 isolcpus** | 03 未接线，无 NCCL 参与，加了无收益且有 embed 中断风险；**待接线成环后再补** | — |
+| C4 | **03**（<MGMT_OCTET>） | **不加 isolcpus** | 03 未接线，无 NCCL 参与，加了无收益且有 embed 中断风险；**待接线成环后再补** | — |
 | C5 | **02/04** | L2 地址持久化（写 netplan 或重启后手动 `ip addr add`） | 防止 10.20.0.x 丢失导致 L2 断 | 删除地址配置 |
 
 **建议**：C5 作为 C1/C3 的前置/伴随项，**推荐把 10.20.0.x 补进 97-roce-mtu.yaml**（该文件已含 MTU+dhcp4:false，加 addresses 即可，重启自动恢复），一次性解决。
@@ -170,7 +170,7 @@ fi
 ```
 # 前置：部署 pin_ar4.sh 到 01/02(/04)
 scp pin_ar4.sh <USER>@<NODE_IP>:/tmp/nccl_pin/
-ssh ... 'sed -i ...'  (可选：04 需先部署到 .189)
+ssh ... 'sed -i ...'  (可选：04 需先部署到 <MGMT_OCTET>)
 
 # hostfile
 # hostfile_12:  <NODE_IP> slots=1 / <NODE_IP> slots=1

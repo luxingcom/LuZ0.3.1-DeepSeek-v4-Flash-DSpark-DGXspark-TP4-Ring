@@ -48,7 +48,7 @@
 | # | 来源 | 对象 | 问题 | 修复 |
 |---|------|------|------|------|
 | 7 | Cody | 防火墙 | 默认 ACCEPT，未收敛 DROP 白名单 | 评估向 DROP 收敛 + 监控栈白名单 |
-| 8 | Cody | prometheus.yml | 仍旧 .58/.60 TP2 拓扑，与生产 8191 漂移 | 同步 TP4 拓扑 + 8191 retention/告警闭环 |
+| 8 | Cody | prometheus.yml | 仍旧 <MGMT_OCTET>/<MGMT_OCTET> TP2 拓扑，与生产 8191 漂移 | 同步 TP4 拓扑 + 8191 retention/告警闭环 |
 | 9 | Cody | ssh 编排 | 缺 StrictHostKeyChecking/ServerAlive，复合命令拼接解析风险 | 加 ssh 参数 + 命令复用优化 |
 | 10 | Cody | start_tp4_cluster | 无 set -e 主路径失败语义 | 强化 set -e |
 | 11 | Cody | NCCL_IB_PEER_HCA | 固定 2048 缓冲 + atoi 无校验（低危） | 加边界校验 |

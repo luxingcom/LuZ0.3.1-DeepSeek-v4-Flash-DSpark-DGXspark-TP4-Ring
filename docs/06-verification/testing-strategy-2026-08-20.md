@@ -107,7 +107,7 @@
 ### 阶段 A–B：环境 / 镜像 / 补丁
 | 项 | 检查 | 判据 | 脚本/命令 | 优先级 |
 |---|---|---|---|---|
-| A1 | 4 机在线 | 4 ping 通 | `ping <NODE_IP>~189` | 🔴 |
+| A1 | 4 机在线 | 4 ping 通 | `ping <NODE_IP>~<MGMT_OCTET>` | 🔴 |
 | A3 | 隔离核 | cmdline 含 `isolcpus=8-9` | `cat /proc/cmdline` | 🔴 |
 | A4 | 内存头寸 | 03/04 avail≥4G | `free -g` | 🔴 |
 | A6 | NCCL/shim MD5 | `b7784b49`/`ce43c688` 四机一致 | `md5sum` | 🔴 |

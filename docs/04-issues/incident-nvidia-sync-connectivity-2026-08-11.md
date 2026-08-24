@@ -57,10 +57,10 @@
 
 | 节点 | SSH | GPU(GB10) | 关键服务 | 网络要点 |
 |---|---|---|---|---|
-| 01=<NODE_IP> | OK | 1×, 53°C, 0% | vllm-cluster active、8001/health 200 | 管理网通；RoCE 136.1/137.1 UP；module0 两口仅 169.254 |
-| 02=<NODE_IP> | OK | 1×, 53°C, 0% | litellm:4000、registry:5000、Grafana:3000、Prom:8191 均 200 | 管理网通；RoCE 136.2/137.2；<NODE_IP>/13↔04 通 |
-| 03=<NODE_IP> | OK | 1×, 52°C, 0% | embed:8022 200、dcgm-exporter | **4×CX-7 口全 200G UP**；138.2/139.2 通 04；module0 两口无 IP 仅 fe80 |
-| 04=<NODE_IP> | OK | 1×, 52°C, 0% | embed:8022 200 | 管理网通；138.3/139.3 通 03；<NODE_IP>/14↔02 通 |
+| 01=<NODE_IP> | OK | 1×, 53°C, 0% | vllm-cluster active、8001/health 200 | 管理网通；RoCE <RING_SUBNET>/<RING_SUBNET> UP；module0 两口仅 169.254 |
+| 02=<NODE_IP> | OK | 1×, 53°C, 0% | litellm:4000、registry:5000、Grafana:3000、Prom:8191 均 200 | 管理网通；RoCE <RING_SUBNET>/<RING_SUBNET>；<NODE_IP>/13↔04 通 |
+| 03=<NODE_IP> | OK | 1×, 52°C, 0% | embed:8022 200、dcgm-exporter | **4×CX-7 口全 200G UP**；<RING_SUBNET>/<RING_SUBNET> 通 04；module0 两口无 IP 仅 fe80 |
+| 04=<NODE_IP> | OK | 1×, 52°C, 0% | embed:8022 200 | 管理网通；<RING_SUBNET>/<RING_SUBNET> 通 03；<NODE_IP>/14↔02 通 |
 
 磁盘：01 17% / 02 35% / 03、04 27%（健康）。内存（可用/总）：01、02 各约 110G+/121G（vllm 常驻），03、04 各约 13G。四机防火墙全空（无 ufw/iptables/nft 规则）。
 
@@ -73,7 +73,7 @@
 
 ### 3. 网络核实
 
-- 管理网四机互 ping 全通；A 组 RoCE（136/137）、B 组 RoCE（138/139）组内互 ping 通。
+- 管理网四机互 ping 全通；A 组 RoCE（<RING_SUBNET>）、B 组 RoCE（<RING_SUBNET>）组内互 ping 通。
 - **03 号机接线确认完成（物理层）**：dmesg 显示 module0 两口 Cable plugged + Link up + RoCE ACTIVE；LLDP 证实 03 网卡口直连 01（口对口映射见下）；但 01 对应两口仅 169.254 link-local、03 两口仅 fe80，**均未配置 IP**（netplan 97-roce-mtu.yaml 仅设 mtu + dhcp4:false）→ 物理通、三层不通。
 
 **01↔03 新互联段口对口映射（LLDP）**
@@ -110,7 +110,7 @@
 | 现象 | 03 号机接线后 01↔03 间 L3 不可达 | 03 无 10.20.0.x 地址；从 03 ping <NODE_IP>/10 均 FAIL |
 | Why1 | 03 的 module0 两口只有 link-local，无静态 IP | 03 `ip -br addr`：enp1s0f0np0/enp2p1s0f0np0 仅 fe80；01 对应两口仅 169.254 |
 | Why2 | netplan 97-roce-mtu.yaml 只写 mtu+dhcp4:false，未配 addresses | 01/03 均无 addresses 段（02/04 有 <NODE_IP>/10/13/14） |
-| Why3 | 03 的 99-nvidia-sync-cluster.yaml（8/7 修改，248 字节）只含 RoCE 138/139 module1 口，未纳入新接 module0 口 | 文件内容仅两个 module1 网卡口；01/02 版本（328 字节）才有 module0 |
+| Why3 | 03 的 99-nvidia-sync-cluster.yaml（8/7 修改，248 字节）只含 RoCE <RING_SUBNET> module1 口，未纳入新接 module0 口 | 文件内容仅两个 module1 网卡口；01/02 版本（328 字节）才有 module0 |
 | Why4 | 接线物理完成后未执行 netplan 配置更新 + apply | dmesg 显示 18.9h 前 Cable plugged/Link up，配置快照（8/7）早于接线且无后续改动 |
 | 结论 | 03 号机 CX-7 接线为纯物理层完成；01/03 两端 module0 口缺 L3 规划，需补静态 IP 并 netplan apply | |
 
@@ -133,7 +133,7 @@
 |---|------|---------|--------|---------|---------|
 | 1 | **用户确认「NVIDIA sync」客户端实际连接的目标地址/端口/凭据**；触发条件：用户提供信息后升为执行态。若是 DGX Dashboard → 将 dgx-dashboard-service 绑到 0.0.0.0 或走 SSH 隧道；若是其他软件 → 按其文档放通 | 用户 + SRE | P0 | 待用户提供信息 | 确认到具体 IP:PORT 与协议；客户端可连通并完成握手 |
 | 2 | 为 01↔03 module0 直连段补齐静态 IP（建议 <NODE_IP>/30×2）并 netplan apply | SRE | P1 | 用户确认后 1 次维护窗口 | 两端 IP 生效、01↔03 互 ping 通、ethtool 保持 UP |
-| 3 | 四机 /etc/hosts 添加 192.168.5.x ↔ node01~04 映射 | SRE | P1 | 1 次维护窗口 | `getent hosts node01~04` 返回 <NODE_IP>~189 |
+| 3 | 四机 /etc/hosts 添加 192.168.5.x ↔ node01~04 映射 | SRE | P1 | 1 次维护窗口 | `getent hosts node01~04` 返回 <NODE_IP>~<MGMT_OCTET> |
 | 4 | 核对 99-nvidia-sync-cluster.yaml 命名来源（确认是否 NVIDIA 官方软件残留，决定保留/重命名） | SRE | P2 | 常规 | 确认文件来源并记录决策 |
 | 5 | 轮换 sudo 密码（secrets 标注暴露面） | 用户 + SRE | P2 | 常规 | 旧密码失效、secrets 文件已更新 |
 | 6 | 监控 5000 端口稳定性（历史 ACL 问题是否复发） | SRE | P2 | 持续 | 连续 7 天无异常记录 |
@@ -150,7 +150,7 @@
 - 「NVIDIA sync」软件的具体产品名/目标端点未确认 —— 本报告基于服务器侧可观测证据给出最可能根因，**需用户提供客户端连接目标以最终定论**。
 - 01↔03 新直连段的 IP 规划未定（<NODE_IP>/30×2 为建议值，需用户/架构确认）。
 - 03 号机接线时间点（dmesg 推算约 8/11 凌晨 vs 用户"白天接线"）存在出入，待核实。
-- 03 号机接线后 B 组 RoCE（138/139）仅验证 03↔04；01↔03 段三层不通，跨组 4 机闭环 RoCE 尚不可用。
+- 03 号机接线后 B 组 RoCE（<RING_SUBNET>）仅验证 03↔04；01↔03 段三层不通，跨组 4 机闭环 RoCE 尚不可用。
 
 ---
 

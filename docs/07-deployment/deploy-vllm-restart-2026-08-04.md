@@ -32,8 +32,8 @@
 
 | 节点 | 重启时刻 | 容器状态 | serve 参数确认 |
 |------|---------|---------|---------------|
-| worker (.58) | 13:14:44 | `vllm-envE-worker` Up healthy ✅ | 含 `--reasoning-parser deepseek_v4` |
-| head (.60) | 13:15:12 | `vllm-envE-node` Up healthy ✅（READY 340s） | 含 `--reasoning-parser deepseek_v4` |
+| worker (<MGMT_OCTET>) | 13:14:44 | `vllm-envE-worker` Up healthy ✅ | 含 `--reasoning-parser deepseek_v4` |
+| head (<MGMT_OCTET>) | 13:15:12 | `vllm-envE-node` Up healthy ✅（READY 340s） | 含 `--reasoning-parser deepseek_v4` |
 
 ### 阶段 3：全链路验证（Rex）
 

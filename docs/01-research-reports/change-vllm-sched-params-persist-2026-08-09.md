@@ -22,11 +22,11 @@
 
 | 机器 | 脚本 | 角色 |
 |------|------|------|
-| 01 (.186) | `<INSTALL_DIR>/scripts/start_head_v026r.sh` | A 组 TP2 head |
-| 02 (.187) | `<INSTALL_DIR>/scripts/start_worker_v026r.sh` | A 组 TP2 worker |
-| 03 (.188) | `<INSTALL_DIR>/scripts/start_head_groupB.sh` | B 组 TP2 head |
-| 03 (.188) | `<INSTALL_DIR>/scripts/start_worker_groupB.sh` | B 组 worker 副本（分发源） |
-| 04 (.189) | `<INSTALL_DIR>/scripts/start_worker_groupB.sh` | B 组 TP2 worker |
+| 01 (<MGMT_OCTET>) | `<INSTALL_DIR>/scripts/start_head_v026r.sh` | A 组 TP2 head |
+| 02 (<MGMT_OCTET>) | `<INSTALL_DIR>/scripts/start_worker_v026r.sh` | A 组 TP2 worker |
+| 03 (<MGMT_OCTET>) | `<INSTALL_DIR>/scripts/start_head_groupB.sh` | B 组 TP2 head |
+| 03 (<MGMT_OCTET>) | `<INSTALL_DIR>/scripts/start_worker_groupB.sh` | B 组 worker 副本（分发源） |
+| 04 (<MGMT_OCTET>) | `<INSTALL_DIR>/scripts/start_worker_groupB.sh` | B 组 TP2 worker |
 
 01/02 的 `~/start_head_v026r.sh` / `~/start_worker_v026r.sh` 为软链，自动跟随。
 `~/start_head_E.sh` / `~/start_worker_E.sh`（vLLM 0.25 旧版、无引用）未修改。

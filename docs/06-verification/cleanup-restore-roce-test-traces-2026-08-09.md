@@ -43,8 +43,8 @@
 
 | 项 | 原始值 | 还原动作 | 验证 |
 |---|---|---|---|
-| 01 叠加探测 IP（<NODE_IP>/30、<NODE_IP>/30） | 无（netplan 仅 10.100） | ip addr del | ✅ 剩 <NODE_IP>/137.1 |
-| 02 叠加探测 IP（<NODE_IP>/30、<NODE_IP>/30） | 无 | ip addr del | ✅ 剩 <NODE_IP>/137.2 |
+| 01 叠加探测 IP（<NODE_IP>/30、<NODE_IP>/30） | 无（netplan 仅 10.100） | ip addr del | ✅ 剩 <NODE_IP>/<RING_SUBNET> |
+| 02 叠加探测 IP（<NODE_IP>/30、<NODE_IP>/30） | 无 | ip addr del | ✅ 剩 <NODE_IP>/<RING_SUBNET> |
 | 04 netdev_budget_usecs | 2000 | sysctl -w 2000 | ✅ cat=2000 |
 | 04 module0 双口 MTU | 1500 | ip link set mtu 1500 | ✅ cat=1500 |
 | tcp_low_latency / netdev_budget（01/02/04） | 0 / 300 | 早前已回退，复核无残留 | ✅ |
@@ -56,7 +56,7 @@
 | rp_filter | 2 | 1 | ✅ |
 | 内网限 TCP（4 口 INPUT/OUTPUT DROP TCP） | 无 | 8 条规则 | ✅ 已加 |
 | FORWARD policy | DROP | DROP | ✅ 一致 |
-| netplan | <NODE_IP>/139.2 | 保留 | ✅ |
+| netplan | <NODE_IP>/<RING_SUBNET> | 保留 | ✅ |
 | 生产容器 | — | 未触碰 | ✅ anemll-embed-8022 Up |
 
 ### 1.4 保留项（非测试改动）

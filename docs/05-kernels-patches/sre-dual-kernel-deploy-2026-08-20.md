@@ -3,7 +3,7 @@
 **执行人**: 雷克斯（Rex）· SRE 工程师
 **窗口**: 生产停机窗口（TP4 全线停止，只读取证）
 **取证方式**: SSH 只读命令 + 一次性容器（`docker run --rm`，用后即删，无 GPU 绑定，无生产写操作）
-**涉及节点**: node01（head，<NODE_IP>）/ node01（.187）/ node01（.188）/ node01（.189）
+**涉及节点**: node01（head，<NODE_IP>）/ node01（<MGMT_OCTET>）/ node01（<MGMT_OCTET>）/ node01（<MGMT_OCTET>）
 **生产镜像**: `<NODE_IP>:5000/anemll/dspark-vllm-gx10:0.2.1-v026.0`（四节点同镜像，已确认本地存在）
 
 ---

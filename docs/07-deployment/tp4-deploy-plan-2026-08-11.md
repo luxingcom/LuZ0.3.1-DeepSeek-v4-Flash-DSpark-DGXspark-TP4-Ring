@@ -49,9 +49,9 @@
 
 | 项 | 结果 |
 |---|---|
-| QoS 复测 | 发现 01(140/141)/03(3口) 漏配 pcp → **已全部修复 4 口 dscp**；NCCL 映射：DSCP46→prio5→tc5 高优先+PFC P5 无损队列（**应用侧需 NCCL_IB_TOS=46**） |
+| QoS 复测 | 发现 01(<RING_SUBNET>)/03(3口) 漏配 pcp → **已全部修复 4 口 dscp**；NCCL 映射：DSCP46→prio5→tc5 高优先+PFC P5 无损队列（**应用侧需 NCCL_IB_TOS=46**） |
 | QoS 持久化 | systemd mlnx-qos.service + mlnx-qos-setup.sh（03 新建 enable+start；01 脚本补 4 口）；模拟验证：reset pcp → restart service → 恢复 dscp ✓（shebang 已修） |
-| iptables 复核 | 四台全 ✅：peer 白名单全覆盖（01 含 140.2/141.2、03 含 140.1/141.1 等）；管理网默认 ACCEPT；白名单=RoCE 口 TCP 定向 DROP（UDP 数据面放行，不影响 NCCL）；rules.v4 与生效规则 diff 空 |
+| iptables 复核 | 四台全 ✅：peer 白名单全覆盖（01 含 <RING_SUBNET>/<RING_SUBNET>、03 含 <RING_SUBNET>/<RING_SUBNET> 等）；管理网默认 ACCEPT；白名单=RoCE 口 TCP 定向 DROP（UDP 数据面放行，不影响 NCCL）；rules.v4 与生效规则 diff 空 |
 | rules.v4 拆分 | 根因确认（netfilter-persistent 先恢复旧快照+docker 后启 IP 变）；**iptables-save-custom.sh 已部署四台，dry-run 通过**；净化 rules.v4 属维护窗口动作（备份后执行，失败 cp 回滚） |
 
 ## 🚀 TP4 部署 playbook（Archi，维护窗口执行）
@@ -107,7 +107,7 @@ ss -tln | grep -E ':8001|:25000' → 空；pgrep -f VLLM::EngineCore → 空
 
 - `NCCL_ALGO=RING`、`NCCL_MIN_NCHANNELS=2`（双链路）
 - `NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1`（全 twin 4 口）
-- **控制面**：`NCCL_SOCKET_IFNAME=GLOO_SOCKET_IFNAME=enP7s7`、MASTER_ADDR/VLLM_HOST_IP=<NODE_IP>~189（非邻机 QSFP 无路由）
+- **控制面**：`NCCL_SOCKET_IFNAME=GLOO_SOCKET_IFNAME=enP7s7`、MASTER_ADDR/VLLM_HOST_IP=<NODE_IP>~<MGMT_OCTET>（非邻机 QSFP 无路由）
 - GID：四机 show_gids 逐机核对；一致则 NCCL_IB_GID_INDEX=2，不一致留空让 2.30 自动选
 - `NCCL_IB_TOS=46`（QoS 映射已就绪，应用侧确认）、`NCCL_IB_TIMEOUT=1000/RETRY_CNT=7`、MTU 9000
 - LD_LIBRARY_PATH 前插 NCCL 2.30.7

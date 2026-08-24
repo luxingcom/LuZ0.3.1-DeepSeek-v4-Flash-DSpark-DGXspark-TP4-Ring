@@ -48,8 +48,8 @@
 | A 组 TP2（01+02） | ✅ Restarts=0、healthy、`/v1/models` 200（Started 03:40 UTC，10h+ 无回退） |
 | B 组 TP2（03+04） | ✅ 已按计划停止（benchmark 后） |
 | embed 03/04 | ✅ anemll-embed-8022，Qwen3-Embedding-0.6B **dim=1024 批量向量实测 OK** |
-| .58 embed | 维持空池（内存不足决策），litellm config 条目整块注释 |
-| litellm embed 池 | ✅ .188:8022 + .189:8022（2 active） |
+| <MGMT_OCTET> embed | 维持空池（内存不足决策），litellm config 条目整块注释 |
+| litellm embed 池 | ✅ <MGMT_OCTET>:8022 + <MGMT_OCTET>:8022（2 active） |
 | 定时汇总任务 | ✅ automation-1786183891921 已于 19:15 触发，报告 19:28 产出 |
 
 ---
@@ -60,7 +60,7 @@
 | # | 门禁条件 | 判定 | 证据 |
 |---|---------|------|------|
 | 1 | TP2 稳定（health 200 + ≥24h 观察无回退） | ✅ PASS | A 组 Restarts=0 healthy API 200；四机零 vllm-gb10 运行容器；B 组停 TP2 为计划动作 |
-| 2 | embed 迁移 anemll | ✅ PASS | 03/04 anemll-embed-8022 双 active；litellm 池 .188/.189:8022 |
+| 2 | embed 迁移 anemll | ✅ PASS | 03/04 anemll-embed-8022 双 active；litellm 池 <MGMT_OCTET>/<MGMT_OCTET>:8022 |
 | 3 | 无引用扫描 | ✅ PASS | docker ps 全节点零容器；grep <INSTALL_DIR> 全目录 + systemd + /etc/docker + docker-compose + litellm config + 本地脚本 → **全零命中** |
 
 ⚠️ Cody 保留意见（不阻塞）：A 组观察窗口实际 10h+ <24h，需在报告中留痕 → 本报告已标注，风险可接受（无 vllm-gb10 容器运行，清理零运行影响）。
@@ -68,10 +68,10 @@
 ### 2.2 执行记录
 | 节点 | 删除对象 | 大小 | 结果 |
 |------|---------|------|------|
-| node01 (.60) | vllm-gb10:0.26.1-cu132 (ac38a938) | 19.2GB | ✅（先删引用容器 embed-qwen3-vllm） |
-| node01 (.58) | vllm-gb10:0.26.1-cu132 (5a2a5e99) | 18.9GB | ✅（先删引用容器 embed-qwen3-vllm + Exited 的 anemll-embed-8022 残留） |
-| node01 (.55) | 双 tag 指向 5a2a5e99（registry + ghcr.nju.edu.cn） | 18.9GB | ✅ 两条 rmi 后层释放 |
-| node01 (.59) | vllm-gb10:0.26.1-cu132 (5a2a5e99) | 18.9GB | ✅ |
+| node01 (<MGMT_OCTET>) | vllm-gb10:0.26.1-cu132 (ac38a938) | 19.2GB | ✅（先删引用容器 embed-qwen3-vllm） |
+| node01 (<MGMT_OCTET>) | vllm-gb10:0.26.1-cu132 (5a2a5e99) | 18.9GB | ✅（先删引用容器 embed-qwen3-vllm + Exited 的 anemll-embed-8022 残留） |
+| node01 (<MGMT_OCTET>) | 双 tag 指向 5a2a5e99（registry + ghcr.nju.edu.cn） | 18.9GB | ✅ 两条 rmi 后层释放 |
+| node01 (<MGMT_OCTET>) | vllm-gb10:0.26.1-cu132 (5a2a5e99) | 18.9GB | ✅ |
 
 **执行要点**（遵循 Cody 建议）：
 - 定向按 tag rmi，**未使用 `docker system prune -a`**（防误伤 anemll）
@@ -114,7 +114,7 @@
 | 3 | Runbook v1.4 记录本次 P4 清理结果 + 死锁修复方案 | Docu | P2 | 8/9 维护窗口 |
 | 4 | 32768-65536 之间加密 1-2 点（如 49152）确认分界点连续性 | Tessa | P3 | 有闲余时 |
 | 5 | 评估 litellm 网关瓶颈：业务并发 >400 req/s 时多实例/LB 方案 | Archi+Rex | P3 | 按需 |
-| 6 | 8/9 维护窗口：RTT 回填 + .58/.60 dockerd 脏缓存修复 | Rex+Zhen | P1 | 2026-08-09 |
+| 6 | 8/9 维护窗口：RTT 回填 + <MGMT_OCTET>/<MGMT_OCTET> dockerd 脏缓存修复 | Rex+Zhen | P1 | 2026-08-09 |
 
 ---
 

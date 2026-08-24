@@ -113,7 +113,7 @@
 - 数值验证依赖 vLLM 运行（当前停机配合视频工作流），本次仅完成配置层修复
 - vLLM 0.26.1dev 存在指标改名风险，一切以恢复后 /metrics 实测为准
 - 面板修改为显示层改动，不影响推理服务（无需重启）
-- 备份留存：.58 `~/vllm-dashboard-backup-20260807.json`（v7 原始版）
+- 备份留存：<MGMT_OCTET> `~/vllm-dashboard-backup-20260807.json`（v7 原始版）
 
 ---
 

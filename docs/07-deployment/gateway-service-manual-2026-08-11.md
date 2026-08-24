@@ -13,7 +13,7 @@
 | **自建网关** | `http://<NODE_IP>:8003` | chat / completions / **responses（保思考链）** / embeddings / models |
 | vLLM 引擎（内部） | `http://<NODE_IP>:8001` | 推理引擎，**业务勿直连** |
 
-> 所有端点均已实测连通（HTTP 200）。旧文档中的 `<NODE_IP>` / `.60` 为节点改名前的地址，已废弃。
+> 所有端点均已实测连通（HTTP 200）。旧文档中的 `<NODE_IP>` / `<MGMT_OCTET>` 为节点改名前的地址，已废弃。
 
 ---
 
@@ -47,10 +47,10 @@
 
 | 网关 | 模型名 | 后端 |
 |------|--------|------|
-| 4000 / 8003 | `local-v4-flash`、`deepseek-v4-flash` | vLLM deepseek-v4-flash-0731（.186:8001） |
+| 4000 / 8003 | `local-v4-flash`、`deepseek-v4-flash` | vLLM deepseek-v4-flash-0731（<MGMT_OCTET>:8001） |
 | 4000 | `dspark-prob`（temp 0.7 默认）/ `dspark-greedy`（temp 0.1 默认） | 同上游，per-key 模板 |
-| 4000 | `local-embedding` | embed 池 .188:8022 + .189:8022（双机） |
-| 8003 | `Qwen3-Embedding-0.6B` | 直连 .188:8022 |
+| 4000 | `local-embedding` | embed 池 <MGMT_OCTET>:8022 + <MGMT_OCTET>:8022（双机） |
+| 8003 | `Qwen3-Embedding-0.6B` | 直连 <MGMT_OCTET>:8022 |
 | 8003 | `deepseek-v4-flash-0731` | vLLM 实际 served 名 |
 
 ---
@@ -113,4 +113,4 @@ curl http://<NODE_IP>:8003/v1/embeddings \
 
 ---
 
-> 参考：旧版完整手册 `litellm-api-key-manual-2026-08-05.md`（地址已过时）；v18-server 配置 `/opt/aicad/.env.prod`（已指向 .187:4000/8003）。
+> 参考：旧版完整手册 `litellm-api-key-manual-2026-08-05.md`（地址已过时）；v18-server 配置 `/opt/aicad/.env.prod`（已指向 <MGMT_OCTET>:4000/8003）。

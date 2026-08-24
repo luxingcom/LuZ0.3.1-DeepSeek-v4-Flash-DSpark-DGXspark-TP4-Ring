@@ -85,7 +85,7 @@
 - 纯 API 层验证（JSON 结构），UI 目视确认需人工（行动 1）
 - 面板 id 已重排（101-120）：如有外部 link/annotation/alert 引用旧 id 需同步更新（本面板无告警配置）
 - 网络单位从 MB/s → Bps 属口径统一变更（数值量级变化，观察时注意）
-- 备份：.58 `~/vllm-dashboard-v10-20260807.json`（v10）/ `~/vllm-dashboard-backup-20260807.json`（v7）
+- 备份：<MGMT_OCTET> `~/vllm-dashboard-v10-20260807.json`（v10）/ `~/vllm-dashboard-backup-20260807.json`（v7）
 
 ---
 

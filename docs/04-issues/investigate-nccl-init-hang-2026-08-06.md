@@ -25,7 +25,7 @@
 
 ## 1️⃣ 现象与诊断素材
 
-- 环境：2×DGX Spark（GB10 sm_121a），head .60（RoCE <NODE_IP>）/ worker .58，host 网络容器，vLLM 0.26.1.dev0（anemll 0.2.1-v026.0），TP=2 mp 后端
+- 环境：2×DGX Spark（GB10 sm_121a），head <MGMT_OCTET>（RoCE <NODE_IP>）/ worker <MGMT_OCTET>，host 网络容器，vLLM 0.26.1.dev0（anemll 0.2.1-v026.0），TP=2 mp 后端
 - **4 次双机重启 3 次卡死**（第 4 次成功）；卡死时 head 日志停在 `parallel_state.py:1615 world_size=2 rank=0 backend=nccl` 后无输出（无 ERROR），EngineCore 进程 ALIVE、8001 不监听、CPU 空闲（可挂 2h）
 - worker 侧失败错误：`TCPStore recvValue failed remote=[fdff:ffff::a457:9e7c:a7eb]:17300`（IPv6 ULA，head 无此地址）/ `Connection closed by peer [<NODE_IP>]:18349`
 - 已排除：TIME_WAIT 端口残留（store 用 SO_REUSEADDR）、RoCE 链路（双 HCA 计数 0 错误）、OS（Ubuntu 24.04 合规）

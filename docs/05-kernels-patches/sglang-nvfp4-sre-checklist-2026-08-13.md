@@ -3,7 +3,7 @@
 - **核验人**：雷克斯（Rex）· SRE 工程师（工程保障团队）
 - **核验时间**：2026-08-13 15:30–15:40 UTC（只读操作，全程未做任何写操作）
 - **设计基线**：`sglang-nvfp4-arch-design-2026-08-13.md`（architect，§3.4/§3.5/§3.6 已对齐）
-- **范围**：DGX Spark 四机集群（AICAD）TP4 环网：node01(.60/.186) / 02(.58/.187) / 03(.55/.188) / 04(.59/.189)，用户 <USER>
+- **范围**：DGX Spark 四机集群（AICAD）TP4 环网：node01(<MGMT_OCTET>/<MGMT_OCTET>) / 02(<MGMT_OCTET>/<MGMT_OCTET>) / 03(<MGMT_OCTET>/<MGMT_OCTET>) / 04(<MGMT_OCTET>/<MGMT_OCTET>)，用户 <USER>
 - **目的**：核验创建 SGLang 测试环境（NVFP4 权重，TP4 环网）的可行性，与生产 vLLM TP4 做 **A/B 互斥切换**（UMA 内存互斥硬约束，无法并存）
 
 ---
@@ -129,7 +129,7 @@
 
 ### 🟠 SEV2 — 镜像版本门槛（26.02 不可用）
 - **现象**：四机均无 SGLang 镜像；NGC 26.02（SGLang 0.5.8）**早于 DSV4 NVFP4 支持（0.5.14）**，仅覆盖 R1/Llama 早期模型。
-- **处置**：拉取 `nvcr.io/nvidia/sglang:26.07-py3`，`docker exec` 验证 `sglang.__version__ >= 0.5.14` 且 `flashinfer >= 0.6.15`；不合则自建 `lmsysorg/sglang:v0.5.16`（aarch64）+ flashinfer sm12x wheel。推送到 `.187:5000/sglang/sglang:0.5.16-nvfp4-spark`。
+- **处置**：拉取 `nvcr.io/nvidia/sglang:26.07-py3`，`docker exec` 验证 `sglang.__version__ >= 0.5.14` 且 `flashinfer >= 0.6.15`；不合则自建 `lmsysorg/sglang:v0.5.16`（aarch64）+ flashinfer sm12x wheel。推送到 `<MGMT_OCTET>:5000/sglang/sglang:0.5.16-nvfp4-spark`。
 
 ### 🟠 SEV2 — 端口定案变更（8003/25999 被占，改 8010/8011/26000）
 - 已核验四机 8010/8011/26000 空闲；部署 preflight 复查。

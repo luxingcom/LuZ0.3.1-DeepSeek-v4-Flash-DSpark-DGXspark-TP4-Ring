@@ -98,7 +98,7 @@
 
 ## 📚 数据来源 & 成员产出索引
 
-- 实测数据：.58 /tmp/results_A/rows_A.csv（264 样本）+ /tmp/results_A_fix/rows_A.csv（45 样本）+ bench_A.log（42 done 行 p50）
+- 实测数据：<MGMT_OCTET> /tmp/results_A/rows_A.csv（264 样本）+ /tmp/results_A_fix/rows_A.csv（45 样本）+ bench_A.log（42 done 行 p50）
 - Tessa（测试专家）：数据质量判定 + 8/5 基线对比 + 核心结论 + B 组建议（engineering-benchmark-report inbox）
 - 矩阵文件：/tmp/results_A_matrix_full.json（45 行）
 

@@ -60,7 +60,7 @@
 | 启动脚本 MD5 | head=72137b8a（01）；worker 02≠03/04（已知差异，非阻塞） | ✅ |
 | 权重 .local-backup | 03 上 <MODELS_DIR>/deepseek-v4-flash-0731.local-backup = **156G** | ✅ |
 | 02 下载通道 | **hf.rimuru.work 已验证可用，下载进行中（30G/164G）** | ✅（原方案"用户代理"已替换） |
-| canary 环境（.55/.59） | 03/04 磁盘 622/631G 可用；03 内存充足（embed+TP4 已运行，资源有余量） | ✅（见 Phase 2 风险注） |
+| canary 环境（<MGMT_OCTET>/<MGMT_OCTET>） | 03/04 磁盘 622/631G 可用；03 内存充足（embed+TP4 已运行，资源有余量） | ✅（见 Phase 2 风险注） |
 
 **修订**：Phase 0 补两项——①下载校验脚本（75 文件清单 + sha256 抽样 + mtp_nvfp4_build_report.json 核对）；②`[5,6,3]→[5,6,5]` 动态K 修正列入 Phase 4 参数固化清单。
 

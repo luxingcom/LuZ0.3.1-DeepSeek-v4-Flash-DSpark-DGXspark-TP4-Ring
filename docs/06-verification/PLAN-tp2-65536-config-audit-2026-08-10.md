@@ -2,7 +2,7 @@
 
 **日期**：2026-08-10
 **编制**：Tessa（测试专家）
-**执行**：team-lead（本机驱动，测试目标 01 head .186:8001 + 02 worker）
+**执行**：team-lead（本机驱动，测试目标 01 head <MGMT_OCTET>:8001 + 02 worker）
 **被测配置**：TP2（768K / seqs12 / batched4096 / threshold2048 / priority / regular CUDA graph / shim v3 / isolcpus 0-4 / IRQ 5-9 / NCCL 默认 tuner 去 LL）
 **驱动**：`C:\Users\novAI\WorkBuddy\集群部署\bench_prefill_decode_async.py`（asyncio 引擎，rounds=3，uuid 随机前缀防 cache）
 **口径铁律**：per-request p50 × conc；禁 agg_*；rounds=3；uuid 随机前缀

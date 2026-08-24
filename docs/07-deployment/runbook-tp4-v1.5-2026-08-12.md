@@ -66,7 +66,7 @@
 ### E.2 监控栈自愈（Prometheus 边界 case 修复，2026-08-23）
 - 症状：`aicad-prometheus-1` 曾 Exited(137) 2 天不自愈（exit + docker daemon 重启边界下 `unless-stopped` 不回拉）。
 - 修复：`docker update --restart=always aicad-prometheus-1`（运行时）+ `/opt/aicad/docker-compose.yml` L125 `restart: always`（compose 源，`.bak-luz031-20260823` 留档）。
-- 注意：Prometheus 是节点冻死信号探针（S1 分诊第一项，`.187:8191`），它自身 down 时先怀疑节点级 UMA 耗尽，不要只当容器问题。
+- 注意：Prometheus 是节点冻死信号探针（S1 分诊第一项，`<MGMT_OCTET>:8191`），它自身 down 时先怀疑节点级 UMA 耗尽，不要只当容器问题。
 
 ## §F. 基准作业纪律（2026-08-23 SRE 新增）
 

@@ -22,8 +22,8 @@
 
 | 文件 | 变更 |
 |------|------|
-| `~/start_head_v026r.sh`（head .60） | ① serve 加 `--distributed-timeout-seconds 300` ② `VLLM_ENGINE_READY_TIMEOUT_S` 7200→600 ③ `NCCL_DEBUG` WARN→INFO ④ 新增 `NCCL_DEBUG_FILE=/var/log/vllm/nccl-%h.log`（容器内 `/var/log/vllm` = 宿主机 `~/vllm-logs` 挂载点） |
-| `~/start_worker_v026r.sh`（worker .58） | 同上 4 项（worker serve 无 `--port`，其余一致） |
+| `~/start_head_v026r.sh`（head <MGMT_OCTET>） | ① serve 加 `--distributed-timeout-seconds 300` ② `VLLM_ENGINE_READY_TIMEOUT_S` 7200→600 ③ `NCCL_DEBUG` WARN→INFO ④ 新增 `NCCL_DEBUG_FILE=/var/log/vllm/nccl-%h.log`（容器内 `/var/log/vllm` = 宿主机 `~/vllm-logs` 挂载点） |
+| `~/start_worker_v026r.sh`（worker <MGMT_OCTET>） | 同上 4 项（worker serve 无 `--port`，其余一致） |
 
 - 修改前均备份：`~/start_head_v026r.sh.bak.20260806_ncclfix` / `~/start_worker_v026r.sh.bak.20260806_ncclfix`
 - 双机 `bash -n` 校验通过；`grep` 确认 5 处变更点全部命中
@@ -44,7 +44,7 @@
 
 - **机制**：head(rank0) 先启动并创建 TCPStore(25000) 后 worker(rank1) 才启动 join——消除 H1 竞态
 - `bash -n` 校验通过
-- **坑位记录**：head 机访问 worker 的 SSH 别名是 `DGXspark02`（<NODE_IP>），不是本地机的 `aicad-server`；`docker exec ss` 在容器内看不到 25000（容器无 ss 权限），端口探测统一用宿主机 `nc -z`/`ss -tln`
+- **坑位记录**：head 机访问 worker 的 SSH 别名是 `node0X`（<NODE_IP>），不是本地机的 `aicad-server`；`docker exec ss` 在容器内看不到 25000（容器无 ss 权限），端口探测统一用宿主机 `nc -z`/`ss -tln`
 
 ---
 
@@ -68,8 +68,8 @@
 
 | 主机 | 文件 | 大小 | 说明 |
 |------|------|------|------|
-| head (.60) | `~/vllm-logs/nccl-spark-05cd.log` | ~21KB | NCCL INFO 级，含 Bootstrap/RoCE 握手等 254 行 |
-| worker (.58) | `~/vllm-logs/nccl-edgexpert-0c69.log` | ~17KB | 同上 186 行 |
+| head (<MGMT_OCTET>) | `~/vllm-logs/nccl-spark-05cd.log` | ~21KB | NCCL INFO 级，含 Bootstrap/RoCE 握手等 254 行 |
+| worker (<MGMT_OCTET>) | `~/vllm-logs/nccl-edgexpert-0c69.log` | ~17KB | 同上 186 行 |
 
 - 已确认每次重启都会覆盖写入（时间戳随运行更新），后续卡死排查可直接取用
 

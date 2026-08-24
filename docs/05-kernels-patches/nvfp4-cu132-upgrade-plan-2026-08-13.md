@@ -103,7 +103,7 @@ MJPansa 0731-NVFP4 **保留 DSpark/MTP 模块**（报告已确认），投机解
 
 1. 备份锚点固化：当前镜像 tag + ring-only MD5(b7784b49) + shim v8 MD5(ce43c688) + 启动脚本 MD5 + 权重 .local-backup
 2. 确认 02 下载通道（16:55 已定案：用户代理 → 本地下载 MJPansa 0731-NVFP4 → scp 02 → rsync 01 → NFS 03/04）
-3. 在 .55/.59（canary 机）预留 cu132 镜像构建环境
+3. 在 <MGMT_OCTET>/<MGMT_OCTET>（canary 机）预留 cu132 镜像构建环境
 
 ### Phase 1：NVFP4 权重下载与校验（并行于镜像构建）
 
@@ -163,7 +163,7 @@ MJPansa 0731-NVFP4 **保留 DSpark/MTP 模块**（报告已确认），投机解
 
 | 风险 | 等级 | 缓解 |
 |------|------|------|
-| 自建 cu132 镜像 sm_121 原生 kernel 成熟度不足 | 高 | Phase 2 在 canary .55/.59 先验证；失败退回 cu130 |
+| 自建 cu132 镜像 sm_121 原生 kernel 成熟度不足 | 高 | Phase 2 在 canary <MGMT_OCTET>/<MGMT_OCTET> 先验证；失败退回 cu130 |
 | ring-only 补丁与 CUDA 13.2 不兼容 | 高 | 选项 A→B 两级；补丁源码已归档；重编流程现成 |
 | decode 换 Marlin 后劣化 | 中 | A/B 硬门槛 decode≥100；劣化>5% 回滚 |
 | 投机解码 dspark 在 NVFP4 下异常 | 中 | MJPansa 保留 DSpark；A/B 验证接受率 |
@@ -181,7 +181,7 @@ MJPansa 0731-NVFP4 **保留 DSpark/MTP 模块**（报告已确认），投机解
 | 镜像 | 自建 dspark-vllm-gx10:0.2.1-cu132-nvfp4 | 待构建（1-2 人日） |
 | 补丁源码 | ring-only v1/v2/v3 + shim v8 | 已归档 backup/ |
 | 驱动 | 580.173.02 | ✅ 无需动 |
-| 环境 | .55/.59 canary + 测试环境（生产镜像副本） | 就绪 |
+| 环境 | <MGMT_OCTET>/<MGMT_OCTET> canary + 测试环境（生产镜像副本） | 就绪 |
 
 ---
 

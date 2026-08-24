@@ -3,7 +3,7 @@
 **日期**：2026-08-10
 **工作流**：测试与性能基准（65536 上限 45 格全量 + 配置变更后首次验证）
 **参与成员**：Tessa（测试专家，方案/数据核查/判定）/ team-lead（执行与数据汇编）
-**被测配置（本次）**：TP2 01 head .186:8001 + 02 worker ｜ max_model_len=**768000** ｜ **max-num-seqs=12** ｜ batched4096 ｜ threshold2048 ｜ priority ｜ **regular CUDA graph（BREAKABLE=0）** ｜ **shim v3（LD_PRELOAD=libncclpin.so）** ｜ **isolcpus 0-4（A725 给 NCCL）** ｜ IRQ 5-9 ｜ NCCL 默认 tuner（去 LL）
+**被测配置（本次）**：TP2 01 head <MGMT_OCTET>:8001 + 02 worker ｜ max_model_len=**768000** ｜ **max-num-seqs=12** ｜ batched4096 ｜ threshold2048 ｜ priority ｜ **regular CUDA graph（BREAKABLE=0）** ｜ **shim v3（LD_PRELOAD=libncclpin.so）** ｜ **isolcpus 0-4（A725 给 NCCL）** ｜ IRQ 5-9 ｜ NCCL 默认 tuner（去 LL）
 **对照基线**：B 组 `rows_B.csv`（seqs6 / breakable / isol 16-19 / 8-08 时代）；8/10 全量 `benchmark-tp2-full-54-2026-08-10.md`（seqs6 / breakable / isol 16-19 / 8-10 时代）
 **数据源**：`results_TP2audit_merged/summary_TP2audit.json`（45 格）+ `rows_TP2audit.csv`（405 行，err=0）
 **口径**：per-request p50 × conc；禁 agg_*；rounds=3；asyncio；uuid 随机前缀
@@ -266,8 +266,8 @@
 
 | 模式 | c1 | c4 | c8 | c16 | err |
 |------|-----|-----|-----|-----|-----|
-| direct3 (.188:8022) | 75.9 | 237.7 | 348.7 | 532.2 | 0 |
-| direct4 (.189:8022) | 73.9 | 236.6 | 348.2 | 504.9 | 0 |
+| direct3 (<MGMT_OCTET>:8022) | 75.9 | 237.7 | 348.7 | 532.2 | 0 |
+| direct4 (<MGMT_OCTET>:8022) | 73.9 | 236.6 | 348.2 | 504.9 | 0 |
 | dual (litellm 4000 双机池) | 53.3 | 168.4 | 306.7 | **515.3** | 0 |
 
 ### 9.2 延迟（c16，ms）

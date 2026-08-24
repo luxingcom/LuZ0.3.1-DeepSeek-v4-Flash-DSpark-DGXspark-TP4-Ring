@@ -36,7 +36,7 @@
 
 | 层 | 机制 | 证据 |
 |---|---|---|
-| 现象 | 4 rank allreduce `ibv_modify_qp 110`（01 的 136.1 连 03 的 138.2 非直连） | 多次实测 |
+| 现象 | 4 rank allreduce `ibv_modify_qp 110`（01 的 <RING_SUBNET> 连 03 的 <RING_SUBNET> 非直连） | 多次实测 |
 | Why1 | NCCL init 对**全 rank 对**建 IB QP（非仅 RING 相邻）——PAT connect 无条件为 distance-2 pair 建连 | 源码 init.cc Phase6 + 日志 |
 | Why2 | 建连选口按 **HCA index 统一配对**（与物理连通无关）；每机 index0 口只连 1 个邻居但有 2 个 | 对照实验：单口对口成功、多口 index 配对失败 |
 | Why3 | 无交换机时 NCCL 无法感知 fabric 拓扑（隐式全互联假设） | NCCL 机制 + 社区实证 |
@@ -74,7 +74,7 @@ if (comm->peerInfo[peer].hostHash != comm->peerInfo[comm->rank].hostHash &&
 |---|---|
 | 4 rank all_reduce | CONN OK sum=6、**零 110** |
 | busbw | 4.4 GB/s（4 rank RING 单口）；2 rank 直连 6.4 GB/s |
-| per-peer 对口日志 | rank0→3 用 140.1、rank1→0 用 136.2、rank2→1 用 <NODE_IP>、rank3→2 用 138.2 全部物理对口 ✓ |
+| per-peer 对口日志 | rank0→3 用 <RING_SUBNET>、rank1→0 用 <RING_SUBNET>、rank2→1 用 <NODE_IP>、rank3→2 用 <RING_SUBNET> 全部物理对口 ✓ |
 | TP4 容器 | 四机 vllm-tp4-rank0~3 Up (healthy) |
 | 服务 | 8001 /health=200、/v1/models=deepseek-v4-flash-0731、Chat 冒烟 ✓（-tp4- fingerprint） |
 | 简单 bench | 5 并发 avg 3.81s、p50 1.74s、8 tok/s（冒烟级） |

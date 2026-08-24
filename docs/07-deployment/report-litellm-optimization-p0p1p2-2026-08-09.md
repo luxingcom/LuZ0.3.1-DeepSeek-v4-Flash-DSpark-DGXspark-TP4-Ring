@@ -36,7 +36,7 @@ WHERE key_alias = 'embedding';
 
 - 生产 v18-server 实际加载 `.env.prod`：`LOCAL_EMBED_BASE_URL=http://<NODE_IP>:4000/v1`（litellm 网关）✓
 - 仓库 `.env` 指向 `<NODE_IP>:33345`（旧 LM Studio 配置）——**非生产加载文件，无需处理**
-- 踩坑记录：`<NODE_IP>` 是镜像仓库地址，.58 节点管理 IP 为 `.187`（网关为 .187:4000）
+- 踩坑记录：`<NODE_IP>` 是镜像仓库地址，<MGMT_OCTET> 节点管理 IP 为 `<MGMT_OCTET>`（网关为 <MGMT_OCTET>:4000）
 
 ---
 
@@ -57,7 +57,7 @@ WHERE key_alias = 'embedding';
 |------|------|
 | 本地单测（fallback/空文本/归一化/确定性） | ✅ 全通过 |
 | pytest 套件（含 2 个新增批量测试） | ✅ **36 passed** |
-| 真远程协议（.60 → .187:4000，3 条一次请求） | ✅ HTTP 200、dim=1024、顺序对齐 |
+| 真远程协议（<MGMT_OCTET> → <MGMT_OCTET>:4000，3 条一次请求） | ✅ HTTP 200、dim=1024、顺序对齐 |
 
 ### ⚠️ 生产落地限制
 
@@ -126,7 +126,7 @@ docker run -d --name litellm-proxy --restart unless-stopped --network host \
 | 文件 | 变更 |
 |------|------|
 | litellm-pg `LiteLLM_VerificationToken` | embedding key rpm/tpm → NULL |
-| .58 litellm-proxy 容器 | 启动参数 + `--num_workers 2`（config.yaml.bak-prenumworkers 备份） |
+| <MGMT_OCTET> litellm-proxy 容器 | 启动参数 + `--num_workers 2`（config.yaml.bak-prenumworkers 备份） |
 | AICAD/backend/services/embedding_service.py | 新增 `_embed_via_remote_batch` + 重构 `embed_batch`（batch_size=64） |
 | AICAD/backend/kg/retrievers/embedding_indexer.py | `index_nodes_batch` 改批量调用 |
 | AICAD/backend/tests/test_embedding_service.py | 新增 2 个批量测试 |

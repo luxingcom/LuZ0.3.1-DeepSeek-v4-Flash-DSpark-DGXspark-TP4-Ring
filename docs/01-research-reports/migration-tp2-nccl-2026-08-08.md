@@ -12,9 +12,9 @@
 - **P0 完成**：58+60 TP2 生产恢复成功（head-first 双机重启，/health 200，推理正常），根因=8/6 H1 启动顺序竞态复发 + 单边重建残留 + 双镜像 digest 不一致
 - **P2 完成**：NCCL 2.30.7 升级成功（LD_LIBRARY_PATH 前插 pip nccl 目录，双端运行时验证 0x59df），利用新版 NCCL（PXN 死锁修复/RoCE LAG 负载均衡）改善多机互联
 - **P1 通过**：双镜像（34.2G head + 21.6G worker）vLLM 版本串一致，gloo "128 vs 8" 归因启动竞态而非版本差异
-- **P3 进行中**：embed 迁移 anemll（.58/.60），.55/.59 保留 vllm-gb10；镜像拉取中，对拍验证待执行
+- **P3 进行中**：embed 迁移 anemll（<MGMT_OCTET>/<MGMT_OCTET>），<MGMT_OCTET>/<MGMT_OCTET> 保留 vllm-gb10；镜像拉取中，对拍验证待执行
 - **P4 待门禁**：清理 vllm-gb10 需 embed 迁移完成 + 无引用扫描 + 24h 观察窗口（Cody Request Changes）
-- 严重度分布：🔴 0（已解决）/ 🟠 1（.58/.60 dockerd 脏缓存）/ 🟡 2（口令轮换、embed 内存互斥）
+- 严重度分布：🔴 0（已解决）/ 🟠 1（<MGMT_OCTET>/<MGMT_OCTET> dockerd 脏缓存）/ 🟡 2（口令轮换、embed 内存互斥）
 
 ---
 
@@ -33,8 +33,8 @@
 
 | 时间 | 事件 |
 |------|------|
-| 08-07 14:31Z | .58 worker 先启（违反 SOP） |
-| 08-07 15:39-15:45Z | .60 head 三次重建（单边重建，等 rank1 join 300s 超时循环） |
+| 08-07 14:31Z | <MGMT_OCTET> worker 先启（违反 SOP） |
+| 08-07 15:39-15:45Z | <MGMT_OCTET> head 三次重建（单边重建，等 rank1 join 300s 超时循环） |
 | 08-07 15:45Z | head Restarts=9 循环重启，worker Broken pipe 失联，LLM 生产停机（SEV1） |
 | 08-07 23:41Z | 主理人接管，四机现状采集 |
 | 08-07 23:50Z | Rex 分诊确认：H1 竞态 + 镜像不一致 + 脏 socket |
@@ -48,7 +48,7 @@
 ## 🔍 根因分析（Rex 分诊 + 主理人实测）
 
 ### 主因：8/6 H1 启动顺序竞态复发
-- worker(.58) 先启、head(.60) 后启，违反 8/6 固化 SOP（head 先→轮询 25000→worker 后）
+- worker(<MGMT_OCTET>) 先启、head(<MGMT_OCTET>) 后启，违反 8/6 固化 SOP（head 先→轮询 25000→worker 后）
 - vLLM TCPStore(25000) 由 rank0 在 init_process_group 时才创建；worker 先启必失败
 - head 单边重建 3 次，每次等 rank1 join 300s 超时→退出→restart 循环（Restarts=9）
 
@@ -82,8 +82,8 @@
 ```
 
 ### 验证结果
-- .58 worker：ncclGetVersion=0x59df=**2.30.7**，dladdr=/usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2 ✅
-- .60 head：同 ✅
+- <MGMT_OCTET> worker：ncclGetVersion=0x59df=**2.30.7**，dladdr=/usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2 ✅
+- <MGMT_OCTET> head：同 ✅
 - TP2 并发 3 推理稳定（7+1=8/7+2=9/7+3=10），Restarts=0 ✅
 
 ### 安全复核（Cody）
@@ -100,7 +100,7 @@
 | ADR-001 | 运行基线=anemll 0.2.1（head 34.2G + worker 21.6G 混搭，版本一致） | ✅ Accepted（G1 通过） |
 | ADR-002 | cu132 路径=LD_LIBRARY_PATH 前插 pip nccl（零构建），非整栈换镜像 | ✅ Accepted（P2 完成） |
 | ADR-003 | 55+59 Wi-Fi TP2 不可行（RTT~103ms），保持 embed-only | ✅ Accepted |
-| ADR-004 | embed 迁移 anemll：.58/.60 迁移、.55/.59 保留 vllm-gb10（防异构漂移） | ✅ Accepted（P3 执行中） |
+| ADR-004 | embed 迁移 anemll：<MGMT_OCTET>/<MGMT_OCTET> 迁移、<MGMT_OCTET>/<MGMT_OCTET> 保留 vllm-gb10（防异构漂移） | ✅ Accepted（P3 执行中） |
 | ADR-005 | vllm-gb10 条件清理（embed 迁移完成 + 无引用 + 24h 观察） | ⏳ Proposed（门禁未过） |
 
 ---
@@ -124,11 +124,11 @@
 
 | # | 行动 | 负责角色 | 紧急度 | 预期完成 |
 |---|------|---------|--------|---------|
-| 1 | P3 embed 迁移：.55 起 anemll embed 8021 测试容器 + golden 对拍（cos≥0.99） | Zhen+Tessa | P0 | 镜像拉取后 30min |
-| 2 | .58/.60 内存互斥验证：LLM 107G + embed ≤14G 共存无 OOM | Zhen | P0 | 对拍通过后 |
+| 1 | P3 embed 迁移：<MGMT_OCTET> 起 anemll embed 8021 测试容器 + golden 对拍（cos≥0.99） | Zhen+Tessa | P0 | 镜像拉取后 30min |
+| 2 | <MGMT_OCTET>/<MGMT_OCTET> 内存互斥验证：LLM 107G + embed ≤14G 共存无 OOM | Zhen | P0 | 对拍通过后 |
 | 3 | litellm 切换 8020→8021 + 12 连发验证 + 24h 观察窗 | Zhen+Tessa | P1 | 对拍通过后 1h |
 | 4 | NCCL 遮蔽安全复核：pip nccl 目录内容 + 重启后复验 0x59df | Cody | P1 | 24h 内 |
-| 5 | .58/.60 dockerd 脏缓存修复（维护窗口重启 + by-digest 复验） | Rex | P1 | 下次维护窗口 |
+| 5 | <MGMT_OCTET>/<MGMT_OCTET> dockerd 脏缓存修复（维护窗口重启 + by-digest 复验） | Rex | P1 | 下次维护窗口 |
 | 6 | P4 清理：门禁全绿后定向 rmi vllm-gb10（保留 anemll 双 tag） | Zhen+Cody | P2 | embed 稳定 48h 后 |
 | 7 | 口令轮换 + sshd 禁密码（全集群同密码 <PASSWORD> 风险） | Zhen+Cody | P0 | 1-2 天 |
 
@@ -136,9 +136,9 @@
 
 ## ⚠️ 待完善 / 已知局限
 
-- **.58/.60 dockerd 存储脏缓存**（pull 报 up-to-date 但无该 digest 镜像，疑似 containerd 快照元数据损坏）——需维护窗口重启 dockerd，勿在 TP2 运行期动 .58
+- **<MGMT_OCTET>/<MGMT_OCTET> dockerd 存储脏缓存**（pull 报 up-to-date 但无该 digest 镜像，疑似 containerd 快照元数据损坏）——需维护窗口重启 dockerd，勿在 TP2 运行期动 <MGMT_OCTET>
 - **口令轮换 P0**：全集群共用密码 <PASSWORD> + 记忆已脱敏但用户对话暴露过；密码已在 8/7 报告列为 P0
-- **embed 内存互斥临界**：.58 余 14GiB，embed 预算 ≤14G 为临界值，OOM 自动停 embed 需实现
+- **embed 内存互斥临界**：<MGMT_OCTET> 余 14GiB，embed 预算 ≤14G 为临界值，OOM 自动停 embed 需实现
 - **NCCL 遮蔽风险**：LD_LIBRARY_PATH 前插 pip 目录的长期安全性待 Cody 复核（目录内容核查）
 - **registry 34.2G 覆盖 21.6G tag**：8/7 报告"registry 指向 21.6G"认知已过时，现指向 34.2G
 - 55+59 仅 Wi-Fi：TP2 需有线接线（ConnectX-7 已存在），硬件前置
@@ -147,8 +147,8 @@
 
 ## 📚 数据来源 & 成员产出索引
 
-- **Rex（SRE）**：SEV1 分诊报告（根因 3 因叠加 + 处置步骤 + 检查清单）；P2 方案 A 决策；.58 镜像同步决策（B 混搭 + A 并行 + C 兜底）
-- **Archi（架构师）**：ADR-001~005 + P0-P4 分阶段计划 + 门禁 G0-G4；P3 embed 拓扑补充（.58/.60 迁移）；P4 拍板（vllm-gb10 保留 + 34.2G 有条件 push）
+- **Rex（SRE）**：SEV1 分诊报告（根因 3 因叠加 + 处置步骤 + 检查清单）；P2 方案 A 决策；<MGMT_OCTET> 镜像同步决策（B 混搭 + A 并行 + C 兜底）
+- **Archi（架构师）**：ADR-001~005 + P0-P4 分阶段计划 + 门禁 G0-G4；P3 embed 拓扑补充（<MGMT_OCTET>/<MGMT_OCTET> 迁移）；P4 拍板（vllm-gb10 保留 + 34.2G 有条件 push）
 - **Tessa（测试专家）**：5 项验收门禁（A/B/C 分级）；P3 5 阶段方案（docker run 命令 + golden 对拍脚本 + litellm 切换验证）
 - **Cody（代码审查师）**：安全审查 4 项🔴（镜像边界/口令轮换/明文密码/registry 认证）；P4 清理方案（P4清理方案_vllm镜像_ADR005_20260807.md）；NCCL 遮蔽风险复核
 - **Docu（技术文档师）**：memory-cleanup-plan-2026-08-07.md（记忆清理）；runbook v1.2 更新中
@@ -168,15 +168,15 @@
 - 用户要求：对照 58/60 修复 55/59 内网配置 → 测试 embed 在 TP2 下表现（防 OOM）→ 四机互联后 512G 内存可 TP4
 
 ### 执行成果
-1. **网络配置**（参照 .58 样板 /etc/netplan/99-nvidia-sync-cluster.yaml）：
-   - .55 → <NODE_IP>/24 + <NODE_IP>/24（mtu 9000）
-   - .59 → <NODE_IP>/24 + <NODE_IP>/24（mtu 9000）
-2. **修复坑位**：.55/.59 各有损坏的 90-NM-2edf06d6.yaml（全 NUL 字节 715B）导致 netplan 解析失败 → 移走 .corrupt.bak
+1. **网络配置**（参照 <MGMT_OCTET> 样板 /etc/netplan/99-nvidia-sync-cluster.yaml）：
+   - <MGMT_OCTET> → <NODE_IP>/24 + <NODE_IP>/24（mtu 9000）
+   - <MGMT_OCTET> → <NODE_IP>/24 + <NODE_IP>/24（mtu 9000）
+2. **修复坑位**：<MGMT_OCTET>/<MGMT_OCTET> 各有损坏的 90-NM-2edf06d6.yaml（全 NUL 字节 715B）导致 netplan 解析失败 → 移走 .corrupt.bak
 3. **验证通过**：jumbo ping（-s 8972）0% 丢包，RTT 0.6-0.8ms（vs Wi-Fi 103ms，提升 130 倍）；邻居表 REACHABLE
-4. **镜像同步**：.55/.59 均有 anemll 0.2.1（21.6G 9ea563a724d4，版本串一致）
+4. **镜像同步**：<MGMT_OCTET>/<MGMT_OCTET> 均有 anemll 0.2.1（21.6G 9ea563a724d4，版本串一致）
 
 ### Archi 架构裁决（补充）
-- **IP 规划**：138/139 给 55↔59，140~147 预留四机全互连（TP4 铺路）
+- **IP 规划**：<RING_SUBNET> 给 55↔59，<RING_SUBNET> 预留四机全互连（TP4 铺路）
 - **embed TP2 澄清**：Qwen3-Embedding-0.6B（1.2G）单卡绰绰有余，TP2 无内存收益且损 HA → **生产 embed 维持 4×单卡**；TP2 仅作互联通路演练（为未来 LLM TP2/TP4 预热）；防 OOM 靠单卡显存预算 + OOM 停 embed 脚本
 - **ADR-003 修正**：55+59 可通过 RoCE 直连跑 TP2（原"Wi-Fi 不可行"已不成立）
 
@@ -190,7 +190,7 @@
 ## 🆕 追加：55/59 TP2 embed 验证成功（2026-08-08 01:30）
 
 ### 执行成果
-1. **TP2 embed 部署成功**：anemll 0.2.1 + mp executor（.55 rank0 + .59 rank1，master <NODE_IP>:25055），`/health 200` + `/v1/embeddings` 正常
+1. **TP2 embed 部署成功**：anemll 0.2.1 + mp executor（<MGMT_OCTET> rank0 + <MGMT_OCTET> rank1，master <NODE_IP>:25055），`/health 200` + `/v1/embeddings` 正常
 2. **golden 对拍 PASS**：TP2(8021) vs 单卡(8020) 6 组向量，**cos_min=0.9998 / cos_mean=0.9999**，dim 均 1024——TP2 分布式推理与单卡完全一致
 3. **内存分摊**：TP2 每机 ~2.8GiB（vs 单卡 3.1GiB）——TP 分摊显存验证有效
 
@@ -203,57 +203,57 @@
 ### 架构确认（Archi）
 - ADR-003 修正：55+59 可通过 200G RoCE 跑 TP2（RTT 0.8ms，NCCL all_reduce PASS）
 - embed TP2 演练通过 → 生产 embed 维持 4×单卡（TP2 无内存收益且损 HA）
-- TP2 能力留作未来 LLM TP2/TP4 复用（四机互联 512G 内存，IP 段 140~147 预留）
+- TP2 能力留作未来 LLM TP2/TP4 复用（四机互联 512G 内存，IP 段 <RING_SUBNET> 预留）
 
 ---
 
 ## 🆕 第三阶段追加：embed 验证 + 性能基线 + P1/P4 规划（2026-08-08 08:30）
 
 ### ✅ 完成项
-1. **.58 anemll embed 单卡验证通过（ADR-004 待验项）**：8022 端口（util 0.10），health 200 + golden 对拍 vs .55:8020 cos=0.9999（3 组 dim 1024 一致）；LLM+embed 共存 117G/121G 无 OOM，TP2 推理无回退
-2. **litellm 3 端点 embed 池落地**：.55(vllm-gb10 8020) + .59(vllm-gb10 8020) + .58(anemll 8022)，经 4000 转发验证通过（config 备份 .bak-20260808-embed58）
+1. **<MGMT_OCTET> anemll embed 单卡验证通过（ADR-004 待验项）**：8022 端口（util 0.10），health 200 + golden 对拍 vs <MGMT_OCTET>:8020 cos=0.9999（3 组 dim 1024 一致）；LLM+embed 共存 117G/121G 无 OOM，TP2 推理无回退
+2. **litellm 3 端点 embed 池落地**：<MGMT_OCTET>(vllm-gb10 8020) + <MGMT_OCTET>(vllm-gb10 8020) + <MGMT_OCTET>(anemll 8022)，经 4000 转发验证通过（config 备份 .bak-20260808-embed58）
 3. **TP2 性能基线补测**：c1/512=32.5 t/s、**c5/512=81.7 t/s**（8/5 基线 80.8-96.5 ✅达标，NCCL 2.30.7 无回退）、c1/8192=19.5-22.5 t/s（prefill 稀释 + embed 并存内存影响，Tessa 待专业解读）
 
-### ❌ .60 embed 失败（内存临界，待补位）
+### ❌ <MGMT_OCTET> embed 失败（内存临界，待补位）
 - 根因：LLM head 占 107G，GPU free 14G < embed 需 12.16G（util 0.10），util 0.09 仍 CUDA OOM
-- 主杠杆（Tessa）：收敛 .60 LLM util 到 0.80（~97G）释放 ~10G，P4 清理 + head 重启窗口补位
-- 补位顺序：TP2 基线 → P1(.60 重启+recreate util 0.80) → sanity → P4 → embed 补位 → TP2 全量回归
+- 主杠杆（Tessa）：收敛 <MGMT_OCTET> LLM util 到 0.80（~97G）释放 ~10G，P4 清理 + head 重启窗口补位
+- 补位顺序：TP2 基线 → P1(<MGMT_OCTET> 重启+recreate util 0.80) → sanity → P4 → embed 补位 → TP2 全量回归
 
 ### 📋 P1/P4 规划（Rex + Cody 产出）
-- **P1 dockerd**：诊断先行（内存态 vs 磁盘态），凌晨窗口 .60→.58，不做 prune -af；修复后 .58 拉 34.2G 建第二份回滚锚点
-- **P4 清理**：门禁收窄 .58/.60 定向清理（vllm-gb10 5a2a5e99a5a6 18.9G + ac38a938a8d5 19.2G ≈ 38G）；registry vllm-gb10 暂保留；6 组无引用扫描命令已备；24h 观察窗维持
+- **P1 dockerd**：诊断先行（内存态 vs 磁盘态），凌晨窗口 <MGMT_OCTET>→<MGMT_OCTET>，不做 prune -af；修复后 <MGMT_OCTET> 拉 34.2G 建第二份回滚锚点
+- **P4 清理**：门禁收窄 <MGMT_OCTET>/<MGMT_OCTET> 定向清理（vllm-gb10 5a2a5e99a5a6 18.9G + ac38a938a8d5 19.2G ≈ 38G）；registry vllm-gb10 暂保留；6 组无引用扫描命令已备；24h 观察窗维持
 
 ### 🔑 关键环境事实
-- .59 SSH 管理网口（<NODE_IP>）超时，但 RoCE 内网（<NODE_IP>）正常——embed 服务在线（8020=200）
-- .58 embed 模型曾空目录（从未同步），已从 .55 rsync 1.2G 补齐
-- GB10 统一内存：LLM head 107G + embed 12G 临界（.58 余 4G 可、.60 余 2G 不可）
+- <MGMT_OCTET> SSH 管理网口（<NODE_IP>）超时，但 RoCE 内网（<NODE_IP>）正常——embed 服务在线（8020=200）
+- <MGMT_OCTET> embed 模型曾空目录（从未同步），已从 <MGMT_OCTET> rsync 1.2G 补齐
+- GB10 统一内存：LLM head 107G + embed 12G 临界（<MGMT_OCTET> 余 4G 可、<MGMT_OCTET> 余 2G 不可）
 
 ---
 
-## 🆕 追加：突发事故处置（.58 系统重启 + TP2 恢复 + Grafana 4 台修复）（2026-08-08 09:00）
+## 🆕 追加：突发事故处置（<MGMT_OCTET> 系统重启 + TP2 恢复 + Grafana 4 台修复）（2026-08-08 09:00）
 
 ### 🔴 事故概述
-.58 系统意外重启 → 管理网/RoCE 全断 + TP2 中断（8001 health 000）。容器自动恢复但 worker/embed 挂起。
+<MGMT_OCTET> 系统意外重启 → 管理网/RoCE 全断 + TP2 中断（8001 health 000）。容器自动恢复但 worker/embed 挂起。
 
 ### 恢复链（完整记录）
-1. **worker Exited(127)**：/tmp/env-e-build/nvcc_wrapper.py 被误建为**目录**（重启后 /tmp 清理 + 进程重建错误类型）→ 从 .60 base64 传输正确文件（1710B）
+1. **worker Exited(127)**：/tmp/env-e-build/nvcc_wrapper.py 被误建为**目录**（重启后 /tmp 清理 + 进程重建错误类型）→ 从 <MGMT_OCTET> base64 传输正确文件（1710B）
 2. **head 重建三连坑**：
    - 缺模型挂载 → HFValidationError('/models') → 补 `-v /home/<USER>/models/deepseek-v4-flash-0731:/models:ro`
    - 缺 nvcc_wrapper 挂载 → deepgemm JIT Assertion → 补挂载
-   - **NCCL ibv_modify_qp failed 61（GID index 3 空）** → head 加 `NCCL_IB_GID_INDEX=2`（.60 重启后 GID3 全零，GID2=<NODE_IP> 有效）
+   - **NCCL ibv_modify_qp failed 61（GID index 3 空）** → head 加 `NCCL_IB_GID_INDEX=2`（<MGMT_OCTET> 重启后 GID3 全零，GID2=<NODE_IP> 有效）
 3. **Gloo Connection closed by peer**（时序竞争）→ head-first 严格双停双启 → TP2 恢复（8001=200，推理 3+4=7）
 
 ### ✅ Grafana 4 台数据修复（用户任务 2 部分完成）
-- .59 Wi-Fi 重连成功（nmcli connection up 珉珉家 UUID）→ <NODE_IP> 管理网恢复
-- Prometheus target 改回**管理网直采**（撤销 .55 代理方案）→ node/dcgm 4 台 8/8 up
+- <MGMT_OCTET> Wi-Fi 重连成功（nmcli connection up 珉珉家 UUID）→ <NODE_IP> 管理网恢复
+- Prometheus target 改回**管理网直采**（撤销 <MGMT_OCTET> 代理方案）→ node/dcgm 4 台 8/8 up
 
 ### 📌 用户约束确认（已执行）
 - 内网(RoCE)仅模型分发/多机互联/环境同步；**数据采集走管理网**
-- 断联优先 Wi-Fi 重连（.59 已执行成功）
-- .60 管理网走有线 enP7s7（<NODE_IP>），Wi-Fi 不影响
+- 断联优先 Wi-Fi 重连（<MGMT_OCTET> 已执行成功）
+- <MGMT_OCTET> 管理网走有线 enP7s7（<NODE_IP>），Wi-Fi 不影响
 
 ### 🔑 关键坑位（待 Docu 写 Runbook）
-- .60 系统重启后 RoCE GID index 3 为空 → head 需 `NCCL_IB_GID_INDEX=2`（已持久化）
+- <MGMT_OCTET> 系统重启后 RoCE GID index 3 为空 → head 需 `NCCL_IB_GID_INDEX=2`（已持久化）
 - head/worker 完整挂载清单：模型 /models:ro + nvcc_wrapper + vllm-cache + tilelang-cache + vllm-logs
 - TP2 恢复必须 head-first 严格时序（head 先起等 worker）
 
@@ -266,13 +266,13 @@
 2. **目录规范**：四机 <INSTALL_DIR>/{models,envs,scripts,configs,cache,logs,backup,docs}；models 软链统一入口
 3. **文件调用索引**：file-registry-4node-2026-08-08.md（30 条 + 重启 SOP + 故障速查）→ 四机 docs/file-registry.md
 4. **脚本体系**：start_head_v026r.sh 加固（GID_INDEX 3→2 修复今晨故障根因、挂载持久化）；**start_worker_v026r.sh 新建**（此前缺失）；start_v026r_cluster.sh **v2.0**（幂等清理+端口/挂载预检+trap 诊断+双阶段健康）；systemd vllm-cluster.service（oneshot, enable）
-5. **桌面服务关闭**：.55/.59 gdm+gnome-remote-desktop、.60 gnome-remote-desktop → disable + multi-user
+5. **桌面服务关闭**：<MGMT_OCTET>/<MGMT_OCTET> gdm+gnome-remote-desktop、<MGMT_OCTET> gnome-remote-desktop → disable + multi-user
 6. **NVIDIA 服务分析**：dgx-dashboard 不占 GPU 保留；nvidia-sync 手动 CLI 无常驻服务，干扰已隔离
 7. **Grafana 指标修订（provisioning 方式，零口令依赖）**：
    - vllm-realtime 104/105：解码速度 Decode t/s / 预填充速度 Prefill t/s（标题+表达式 `sum by (node, model_name) (rate(vllm:generation_tokens_total/prompt_tokens_total{job="vllm"}[$__rate_interval]))`）
    - vllm-dspark-cluster：5 个吞吐 panel（decode/prefill/cached 三式）
    - Tessa 四面板复核通过（vllm-realtime v19, provisioning 生效）
-8. **Prometheus**：预加 .55:8001 target（组 B，node=head-55, machine=DGXspark03）
+8. **Prometheus**：预加 <MGMT_OCTET>:8001 target（组 B，node=head-55, machine=node0X）
 
 ### ✅ SRE 验收（Rex 清单）
 A 挂载持久化 0 个 /tmp ✅ | C 桌面关闭 ✅ | D systemd ✅ | E GID_INDEX=2 双端 ✅ | F 三脚本语法 ✅ | G head-60 up ✅（head-55 待组 B）

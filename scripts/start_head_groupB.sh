@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================
-# 组B head(03/node01/.55) — anemll 0.2.1 LLM TP2 启动脚本 v1.0
+# 组B head(03/node01/<MGMT_OCTET>) — anemll 0.2.1 LLM TP2 启动脚本 v1.0
 # 基线: A组 start_head_v026r.sh (v3.3, GID_INDEX=2) 改造
 # 变更: master <NODE_IP>:25055 | 挂载 <MODELS_DIR> | 端口 8001
 #       | NCCL 2.30.7 LD_LIBRARY_PATH 前插 | hostname 校验 node01
@@ -20,7 +20,7 @@ NAME="vllm-groupb-head"
 MASTER_ADDR="<NODE_IP>"
 MASTER_PORT="25055"
 PORT="8001"
-GID_INDEX="${NCCL_IB_GID_INDEX:-2}"   # 按 03/04 GID 检查结果覆盖; 默认 2(对照 A组 .60 修复)
+GID_INDEX="${NCCL_IB_GID_INDEX:-2}"   # 按 03/04 GID 检查结果覆盖; 默认 2(对照 A组 <MGMT_OCTET> 修复)
 
 # ---- 回滚锚点 ----
 mkdir -p <INSTALL_DIR>/backup

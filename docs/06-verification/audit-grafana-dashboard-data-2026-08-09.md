@@ -6,10 +6,10 @@
 
 | # | 问题 | 结论 | 性质 |
 |---|------|------|------|
-| 1 | 面板数据少了很多 | B 组 vLLM（.188:8001）当前未运行 → vLLM 指标只剩 A 组；TSDB 数据连续（72h up=1） | 现状合理，非故障 |
+| 1 | 面板数据少了很多 | B 组 vLLM（<MGMT_OCTET>:8001）当前未运行 → vLLM 指标只剩 A 组；TSDB 数据连续（72h up=1） | 现状合理，非故障 |
 | 2 | CPU 占用率曲线不全 | **四台数据齐全**（01:4.5-29.9% 02:3.6-25.2% 03/04:0.2-2.7%）；03/04 曲线贴 0 轴看似缺失 | 数据真实 |
 | 3 | KV cache 水位单位太小 | **确认 bug**：`vllm:kv_cache_usage_perc` 是 0-1，面板未乘 100（实测 0.37 应为 37%） | 需修复 |
-| 4 | 只有一台数据 | vLLM 指标只在 head 暴露；.186 up、.188 down（B 组未跑）、worker 不暴露 → 仅 A 组 | 现状合理 |
+| 4 | 只有一台数据 | vLLM 指标只在 head 暴露；<MGMT_OCTET> up、<MGMT_OCTET> down（B 组未跑）、worker 不暴露 → 仅 A 组 | 现状合理 |
 | 5 | 推理延迟多条曲线无区别 | **确认 bug**：面板 target 重复粘贴（TTFT×2、TPOT×2、ITL×3 相同 expr） | 需修复 |
 | 6 | 投机解码平均接受长度无数据 | **确认 bug**：用了不存在的 `vllm:spec_decode_num_emitted_tokens_total` | 需修复 |
 | 7 | GPU 占用率 03/04 为 0 | **数据真实**：03 max=0、04 max=16/avg=0.3；原因=只跑 embed 且无流量 | 数据真实 |
@@ -22,7 +22,7 @@
 ### 1. 面板数据少了很多
 
 - Prometheus TSDB 连续：`up{node-58}` 最近 72h 每小时采样全 = 1，**无采集中断**（数据卷持久化正常）
-- **主因**：vllm job 配了 `.186:8001`（up）和 `.188:8001`（**down**）——B 组 TP2 已停（8/8 benchmark 后，当前仅 embed），故 vLLM 相关面板从"两台"变"一台"
+- **主因**：vllm job 配了 `<MGMT_OCTET>:8001`（up）和 `<MGMT_OCTET>:8001`（**down**）——B 组 TP2 已停（8/8 benchmark 后，当前仅 embed），故 vLLM 相关面板从"两台"变"一台"
 - 监控栈容器 3 小时前重启过（Up 3 hours），重启分钟级 gap 在小时步长下不可见
 
 ### 2. CPU 占用率曲线不全
@@ -46,8 +46,8 @@
 
 ### 4. 只有一台数据
 
-- vLLM metrics 仅由 **head 节点**暴露（.186:8001 = A 组 head ✅ up）
-- B 组 head（.188:8001）down（TP2 未跑）；worker 节点（.187/.189）不暴露 vLLM metrics
+- vLLM metrics 仅由 **head 节点**暴露（<MGMT_OCTET>:8001 = A 组 head ✅ up）
+- B 组 head（<MGMT_OCTET>:8001）down（TP2 未跑）；worker 节点（<MGMT_OCTET>/<MGMT_OCTET>）不暴露 vLLM metrics
 - 故 KV/延迟/spec decode/吞吐等 vLLM 面板仅 node01 一条——**符合架构现状**，B 组恢复后自动两台
 
 ### 5. 推理延迟多条曲线没有区别（确认 bug）
@@ -113,13 +113,13 @@
 ## 数据真实性说明（无需修复）
 
 - **GPU 03/04 = 0**：真实（只跑 embed 且无流量），B 组 LLM 恢复或 embed 有流量后会出现
-- **只有一台数据**：真实（vLLM 指标仅 head 暴露，B 组 .188 未运行）
+- **只有一台数据**：真实（vLLM 指标仅 head 暴露，B 组 <MGMT_OCTET> 未运行）
 - **内网网卡 RoCE**：真实准确（IB 计数器字节口径，01↔02 实际 653MB/s 吻合）
 - **CPU 四台齐全**：真实（03/04 值低仅因负载低）
 
 ## 附：环境事实
 
-- Prometheus targets：node/dcgm 四台全 up；vllm .186 up / .188 down（B 组未跑）
+- Prometheus targets：node/dcgm 四台全 up；vllm <MGMT_OCTET> up / <MGMT_OCTET> down（B 组未跑）
 - TSDB：数据连续 72h（`up` 全 1），监控栈 3h 前重启，无数据丢失
 - 数据源：Prometheus（provisioning），Grafana admin 凭据在容器 env
 

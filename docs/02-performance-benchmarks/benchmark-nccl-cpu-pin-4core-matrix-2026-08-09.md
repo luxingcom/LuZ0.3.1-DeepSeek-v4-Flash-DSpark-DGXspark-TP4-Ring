@@ -9,7 +9,7 @@
 ## 一、🚨 关键排障：跨节点 NCCL init 卡死修复
 
 **症状**：四台重启 isolcpus 16-19 后，2-rank mpirun NCCL init 无限挂起（进程 Rl 状态，NCCL_DEBUG 无输出）。
-**根因**：OpenMPI orted 默认使用**全部网卡 IP**（含 RoCE <NODE_IP>/137.1）做 TCP 握手，而 RoCE 口**内网限 TCP 规则（INPUT/OUTPUT DROP TCP）**将握手包 DROP → orted 卡在建立连接。
+**根因**：OpenMPI orted 默认使用**全部网卡 IP**（含 RoCE <NODE_IP>/<RING_SUBNET>）做 TCP 握手，而 RoCE 口**内网限 TCP 规则（INPUT/OUTPUT DROP TCP）**将握手包 DROP → orted 卡在建立连接。
 **修复**：mpirun 加 `--mca oob_tcp_if_include enP7s7 --mca orte_tcp_if_include enP7s7 --mca btl_tcp_if_include enP7s7` 强制 orted 走管理网 → 立即恢复。
 **结论**：重启后必须带 MCA 参数；此参数已固化进 run_matrix.sh。**建议后续所有跨节点 NCCL/MPI 测试脚本统一加此三参数**（或配置 OpenMPI 默认 if_include）。
 

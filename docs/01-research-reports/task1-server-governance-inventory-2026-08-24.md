@@ -114,7 +114,7 @@
 | API key B/C | `<KEY_PREFIX_NEW>...` / `<KEY_PREFIX_OLD>...` | 1 / 53 | key-rotate-r12-restart-2026-08-24.md(5), _fix_20260813/key-env-refactor.md, _prde_bn/evidence_run*.sh, _fix_20260813/sre_work/*.txt 大量, v027-nvfp4-acceptance(2) |
 | API key（综合） | `<KEY_PREFIX_NEW>\|<KEY_PREFIX_OLD>\|<API_KEY>` | ~90 | 上表各文件 |
 | 内网 IP | `192.168.5.x` / `10.20.0.x` / `10.100.x` | ~200 | 分布极广：benchmark-nccl-*、runbook-distribution-*、tp4-service-deployment-guide(25)、report-nccl-tcp-firewall(20)、plan-isolcpus(14)、sglang-nvfp4-arch-design(29)、_raw_audit/arch-verify(21) |
-| 单机 IP | `<NODE_IP>~189` | ~120 | 同 IP 段分布 |
+| 单机 IP | `<NODE_IP>~<MGMT_OCTET>` | ~120 | 同 IP 段分布 |
 | 主机名 | `dgxspark0[1-4]` | ~200+ | 项目主标识，几乎全量文档/脚本 |
 | 用户 | `<USER>` | ~160 | ops/server-maintenance-handbook、setup-newnode-env-guide、runbook-*、nvfp4-download-deploy-plan(10)、_audit/audit2-*.txt |
 | 内部路径 | `<INSTALL_DIR>` | ~200 | 分布极广：architecture-nvfp4(13)、file-registry-4node(20)、handoff-tp4(15)、sglang-*、tp4-service-deployment-guide(10)、_luz031_official_bench/bench_preflight_backup.sh(20) |

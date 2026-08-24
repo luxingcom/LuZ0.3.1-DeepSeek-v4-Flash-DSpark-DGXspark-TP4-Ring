@@ -108,7 +108,7 @@
 | # | 行动 | 负责角色 | 紧急度 | 预期完成 | 验收口径 |
 |---|------|---------|--------|---------|---------|
 | 1 | 补 03—01 段 f0 四口 RoCE IP（按官方 playbook 模式：独立 /24 或 /31，MTU 统一）并 netplan apply + 重启网络防 GID 空洞 | SRE | P1 | 1 次维护窗口 | 四口互通、环上每段 ping 通、ib_write_bw 正常 |
-| 2 | 四台 /etc/hosts 补 node01~04=<NODE_IP>~189 | SRE | P1 | 同上 | getent 全返管理网 IP |
+| 2 | 四台 /etc/hosts 补 node01~04=<NODE_IP>~<MGMT_OCTET> | SRE | P1 | 同上 | getent 全返管理网 IP |
 | 3 | 评估/释放 01/02 内存（~10G 余量），明确 TP4 部署资源账 | SRE + 用户 | P1 | 部署前 | 部署前后 swap 不增长 |
 | 4 | iperf3 高负载压测四段环网 + 复核错误计数，正式解除错误率 P1；装 mft/mlxlink 建 FEC 精确基线 | SRE | P2 | 1 周内 | 计数不增长 |
 | 5 | 01/02 daemon.json 注册 nvidia runtime；QoS 按 DSCP trust 落地；sudo 密码轮换 | SRE + 用户 | P2 | 部署前 | 四台配置一致 |

@@ -29,4 +29,4 @@
 - 清理动作待 team-lead 逐项确认后由 testing 执行（先备份后删）。
 
 ---
-生成环境：vllm-tp4-rank0 (dspark-vllm-gx10:0.2.1-v026.0)，node01(.186)
+生成环境：vllm-tp4-rank0 (dspark-vllm-gx10:0.2.1-v026.0)，node01(<MGMT_OCTET>)

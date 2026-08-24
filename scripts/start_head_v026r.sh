@@ -84,7 +84,7 @@ ENV_ARGS=(
   -e 'NCCL_CROSS_NIC=1'
   -e 'NCCL_DEBUG=INFO'   # nccl-fix 2026-08-06: WARN->INFO 留证据
   -e 'NCCL_DEBUG_FILE=/var/log/vllm/nccl-%h.log'   # nccl-fix: 落盘到 vllm-logs 卷(host ~/vllm-logs)
-  -e 'NCCL_IB_GID_INDEX=2'   # 2026-08-08 加固: .60 重启后 GID3 变空(GID2=<NODE_IP> 有效)   # 修复: 5->3 (idx5 GID 为空, idx3 为 RoCEv2 IPv4)
+  -e 'NCCL_IB_GID_INDEX=2'   # 2026-08-08 加固: <MGMT_OCTET> 重启后 GID3 变空(GID2=<NODE_IP> 有效)   # 修复: 5->3 (idx5 GID 为空, idx3 为 RoCEv2 IPv4)
   -e 'NCCL_IB_HCA=rocep1s0f1,roceP2p1s0f1'
   -e 'NCCL_IGNORE_CPU_AFFINITY=1'   # reason: 绑核评估 2026-08-09 (ncclpin): vllm serve 命令无显式 taskset/亲和设置; isolcpus=16-19 已由内核自动排除用户线程, vllm 主进程天然落 0-15; 若要显式绑 NCCL 线程到 16-19 需 cgroup/shim 方案(4-rank 场景落地); 当前 2-rank TP2 先用 NCCL_PROTO=LL 降低 CPU 代理参与
   -e 'NCCL_NET=IB'

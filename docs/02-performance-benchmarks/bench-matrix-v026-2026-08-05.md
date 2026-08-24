@@ -2,7 +2,7 @@
 
 **日期**：2026-08-05
 **环境**：双 DGX Spark | vLLM 0.26.1.dev0 定制镜像 `ghcr.io/anemll/dspark-vllm-gx10:0.2.1-v026.0`（固化版）
-**配置**：dspark greedy num_spec=5，双机 healthy（head .60 / worker .58）
+**配置**：dspark greedy num_spec=5，双机 healthy（head <MGMT_OCTET> / worker <MGMT_OCTET>）
 **路径**：矩阵补测经网关 8003（客户端 key）；DSpark acceptance 从 head 8001 `/metrics` 采样
 **基线**：v0.25（`_tessa_bench_raw_2026-08-04.txt`）+ v0.26 固化版 19 项复测（`_tessa_v026r_raw_2026-08-05.txt`）
 

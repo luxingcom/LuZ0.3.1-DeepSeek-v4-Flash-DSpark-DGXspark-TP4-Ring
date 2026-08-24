@@ -61,7 +61,7 @@
 | 6 | E 方案性能假设 | 假设"E 有 20-50% 性能损失" → 8/7 推翻 | **推翻**：vllm-gb10:0.26.1-cu132 = anemll fork 公开构建，生产参数 1:1 复刻可行 | 8/7 标注"推翻 Archi 旧假设"；引用处补"已被 8/7 推翻" |
 | 7 | 监控缺失 | 8/1 阶段四查 head 得出"监控缺失" → 8/1 阶段六自修正 | **监控栈在 worker(58)，head(60) 是 AICAD**；"缺失"是误判 | 阶段四结论处加"已被阶段六修正，勿引用" |
 | 8 | greedy vs probabilistic | 8/5 决策 probabilistic(temp>0.1) | **生产=probabilistic+动态K**；greedy 仅 thinking 重负载场景备用 | 8/7 当前配置表注明 |
-| 9 | 生产 vLLM 状态 | 8/6 停机(视频工作流) → 8/7 恢复受阻(prune 误删 .60 head 容器) | **最新=8/7 恢复 P0 进行中**（需重取 ghcr 34.2G 完整版）；embed 已 failover .55/.59 | 8/7 末尾为最新状态；8/6"停机"处加"见 8/7 恢复受阻" |
+| 9 | 生产 vLLM 状态 | 8/6 停机(视频工作流) → 8/7 恢复受阻(prune 误删 <MGMT_OCTET> head 容器) | **最新=8/7 恢复 P0 进行中**（需重取 ghcr 34.2G 完整版）；embed 已 failover <MGMT_OCTET>/<MGMT_OCTET> | 8/7 末尾为最新状态；8/6"停机"处加"见 8/7 恢复受阻" |
 
 ---
 
@@ -105,7 +105,7 @@
 - **删除**：无明文密钥（口令仅以"需密码"属性出现）；过程性"下一步"行可精简。
 
 ### 7. `2026-08-07.md`（保留，当前状态源 + 锚点）
-- **保留**：四机节点配置（.55/.59）、CUDA 13.2 升级评估结论（驱动不动 / vLLM 容器 13.2 暂缓 / .55/.59 作 canary）、cu132 深度分析（sm_120.cubin 原生、全栈 nightly 不值得）、TP4 分析（P0 阻塞=仅 Wi-Fi 无直连）、embed HA 四机落定、镜像清理与 .60 dockerd 异常、LLM 生产恢复受阻（prune 误删教训）、口令轮换 P0。
+- **保留**：四机节点配置（<MGMT_OCTET>/<MGMT_OCTET>）、CUDA 13.2 升级评估结论（驱动不动 / vLLM 容器 13.2 暂缓 / <MGMT_OCTET>/<MGMT_OCTET> 作 canary）、cu132 深度分析（sm_120.cubin 原生、全栈 nightly 不值得）、TP4 分析（P0 阻塞=仅 Wi-Fi 无直连）、embed HA 四机落定、镜像清理与 <MGMT_OCTET> dockerd 异常、LLM 生产恢复受阻（prune 误删教训）、口令轮换 P0。
 - **新增（核心动作）**：文件顶部加 **"当前有效配置锚点"** 表：
   | 项 | 当前值 | 备注 |
   |---|---|---|
@@ -114,7 +114,7 @@
   | GPU_MEM / max_len | 0.80 / 600000 | 8/3 定案 |
   | 端口 | 8001(vLLM)/8003(自研网关)/4000(LiteLLM)/8020(embed,127) | 8000 退役、8002 待核 |
   | 网关 | LiteLLM 双轨 4000+8003；probabilistic+动态K | 8/5-8/6 |
-  | 监控 | worker58:3000/8191；四机 node+dcgm | 8/7 接入 .55/.59 |
+  | 监控 | worker58:3000/8191；四机 node+dcgm | 8/7 接入 <MGMT_OCTET>/<MGMT_OCTET> |
 - **合并**：pkill -f 自匹配教训出现 3 处（L18/L52/L66）→ 合并为 1 条（"用 pgrep 取 PID + 模式避开脚本字符串，第 2/3 次仍踩"）；datasource uid 两级坑（L105 target 级 / L112 panel 级）→ 合并为 1 条完整教训。
 - **脱敏**：L50 Grafana 口令。
 

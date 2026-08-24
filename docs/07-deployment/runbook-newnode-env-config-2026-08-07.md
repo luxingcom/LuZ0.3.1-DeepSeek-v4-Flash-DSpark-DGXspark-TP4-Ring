@@ -1,4 +1,4 @@
-# 新节点环境配置手册（gx10-3f4d / .55）
+# 新节点环境配置手册（gx10-3f4d / <MGMT_OCTET>）
 
 > 面向对象：SRE / 后续新节点接入人员
 > 适用范围：DGX Spark GB10 新节点从裸机到可用基线的环境配置
@@ -9,11 +9,11 @@
 
 ## 1. 概述
 
-本文档描述新节点 **gx10-3f4d（<NODE_IP>）** 的完整环境配置过程与结果，作为集群新增节点接入的**权威基线**。所有配置均已实施并验证，命令可直接复制执行（面向 .55 及后续同类新节点复用）。
+本文档描述新节点 **gx10-3f4d（<NODE_IP>）** 的完整环境配置过程与结果，作为集群新增节点接入的**权威基线**。所有配置均已实施并验证，命令可直接复制执行（面向 <MGMT_OCTET> 及后续同类新节点复用）。
 
-新节点是 DGX Spark GB10 单机（aarch64），当前仅接入 Wi-Fi 管理网（<NODE_IP>/24），尚未有线/RoCE 组网。配置目标：使其与既有 worker（.58）基线对齐，具备 Docker + NVIDIA 容器栈 + 镜像/权重分发接入能力。
+新节点是 DGX Spark GB10 单机（aarch64），当前仅接入 Wi-Fi 管理网（<NODE_IP>/24），尚未有线/RoCE 组网。配置目标：使其与既有 worker（<MGMT_OCTET>）基线对齐，具备 Docker + NVIDIA 容器栈 + 镜像/权重分发接入能力。
 
-**核心结论**：.55 已通过全部验收，可正常拉取内网 registry 镜像、挂载 .58 NFS 权重、运行 GPU 容器。唯一已知限制为当前仅 Wi-Fi 链路，大文件传输受带宽约束（详见第 7 节）。
+**核心结论**：<MGMT_OCTET> 已通过全部验收，可正常拉取内网 registry 镜像、挂载 <MGMT_OCTET> NFS 权重、运行 GPU 容器。唯一已知限制为当前仅 Wi-Fi 链路，大文件传输受带宽约束（详见第 7 节）。
 
 ---
 
@@ -22,11 +22,11 @@
 | 节点 | 角色 | IP | 硬件/配置 | 系统 | GPU 驱动 | 存储 | 网络 | 备注 |
 |---|---|---|---|---|---|---|---|---|
 | **gx10-3f4d** | **新节点** | <NODE_IP>/24 | DGX Spark GB10，aarch64，121Gi 统一内存 | Ubuntu 24.04.4 | 580.173.02 | NVMe 931.5G（可用 822G） | 仅 Wi-Fi（无有线/RoCE） | 用户 <USER>（sudo+docker gid 988） |
-| **.58 worker** | 分发源/worker | <NODE_IP> | 3.6T 大盘 | — | — | 权重 312G @ /home/<USER>/models | 有线 + RoCE | registry:2 :5000、NFS 导出、14 容器（embed 8020 / litellm 4000 / 8003 网关等） |
-| **.60 head** | 备份接收端 | <NODE_IP> | 3.6T | — | — | 备份 ~/backup-images/ | 有线 + RoCE | 接收 .58 save 的 vLLM+embed 镜像备份 |
+| **<MGMT_OCTET> worker** | 分发源/worker | <NODE_IP> | 3.6T 大盘 | — | — | 权重 312G @ /home/<USER>/models | 有线 + RoCE | registry:2 :5000、NFS 导出、14 容器（embed 8020 / litellm 4000 / 8003 网关等） |
+| **<MGMT_OCTET> head** | 备份接收端 | <NODE_IP> | 3.6T | — | — | 备份 ~/backup-images/ | 有线 + RoCE | 接收 <MGMT_OCTET> save 的 vLLM+embed 镜像备份 |
 | 本机（管理机） | 运维入口 | — | — | — | — | — | — | SSH config 别名 gx10-55，三机互信 |
 
-> RoCE 平面：.58/.60 双机 10.100.136.x，TP=2 vLLM（当前停机，配合视频工作流）。.55 未接入 RoCE。
+> RoCE 平面：<MGMT_OCTET>/<MGMT_OCTET> 双机 10.100.136.x，TP=2 vLLM（当前停机，配合视频工作流）。<MGMT_OCTET> 未接入 RoCE。
 
 ---
 
@@ -34,7 +34,7 @@
 
 ### 3.1 Docker 修复（buildkit 损坏库清理）
 
-**背景**：.55 初始 Docker 服务异常（buildkit 依赖库损坏，服务无法启动）。
+**背景**：<MGMT_OCTET> 初始 Docker 服务异常（buildkit 依赖库损坏，服务无法启动）。
 
 **处理方式**：清理损坏的 buildkit 库文件后 Docker 恢复正常。
 
@@ -91,9 +91,9 @@ docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
 
 ### 3.4 SSH 互信
 
-- **本机 → .55 免密**：本机公钥已写入 .55 的 authorized_keys。
-- **.55 密钥对**：已生成（默认 ~/.ssh/id_ed25519 等）。
-- **三机互信**：.55 / .58 / .60 之间已互信，便于后续脚本跨机 rsync / scp。
+- **本机 → <MGMT_OCTET> 免密**：本机公钥已写入 <MGMT_OCTET> 的 authorized_keys。
+- **<MGMT_OCTET> 密钥对**：已生成（默认 ~/.ssh/id_ed25519 等）。
+- **三机互信**：<MGMT_OCTET> / <MGMT_OCTET> / <MGMT_OCTET> 之间已互信，便于后续脚本跨机 rsync / scp。
 - **known_hosts 预置**：避免首次连接指纹确认，供脚本非交互执行。
 - **本机 config 别名**：
 
@@ -118,13 +118,13 @@ Host gx10-55
 ### 3.6 时区 / 内核
 
 ```bash
-timedatectl set-timezone Etc/UTC      # 对齐 .58
+timedatectl set-timezone Etc/UTC      # 对齐 <MGMT_OCTET>
 timedatectl set-ntp true              # NTP 自动同步
 sysctl vm.max_map_count=1048576        # 持久化到 /etc/sysctl.d/（默认已足，显式对齐）
 ```
 
 - 时区统一 **Etc/UTC**，避免多节点日志时间错位。
-- `vm.max_map_count=1048576`：vLLM/大模型场景常需提高 mmap 上限，.55 默认值已满足，显式固定。
+- `vm.max_map_count=1048576`：vLLM/大模型场景常需提高 mmap 上限，<MGMT_OCTET> 默认值已满足，显式固定。
 
 ### 3.7 权限
 
@@ -146,7 +146,7 @@ sysctl vm.max_map_count=1048576        # 持久化到 /etc/sysctl.d/（默认已
 | 5 | `docker info \| grep -A2 'Insecure Registries'` | `<NODE_IP>:5000` |
 | 6 | `docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi` | 显示 GB10，driver 580.173.02 |
 | 7 | `ssh gx10-55 'hostname'` | `gx10-3f4d`（免密直达） |
-| 8 | `ssh gx10-55 'ssh .58 主机名或IP' 'hostname'` | .58 hostname（三机互信） |
+| 8 | `ssh gx10-55 'ssh <MGMT_OCTET> 主机名或IP' 'hostname'` | <MGMT_OCTET> hostname（三机互信） |
 | 9 | `timedatectl \| grep -E 'Time zone\|NTP'` | `Etc/UTC`，`yes` |
 | 10 | `sysctl vm.max_map_count` | `1048576` |
 | 11 | `id <USER>` | 含 `sudo` 与 `docker`(gid 988) 组 |
@@ -180,7 +180,7 @@ systemctl status docker
 **现象**：`docker pull` 卡住或 `timeout`。
 
 **处置**（按序）：
-1. 内网优先：`docker pull <NODE_IP>:5000/<repo>:<tag>`（走 .58 registry，Wi-Fi 内网延迟低）。
+1. 内网优先：`docker pull <NODE_IP>:5000/<repo>:<tag>`（走 <MGMT_OCTET> registry，Wi-Fi 内网延迟低）。
 2. 外网兜底：registry-mirrors（daocloud / dockerproxy）已配置，Docker Hub 直连失败时自动走 mirror。
 3. 重试：Wi-Fi 链路偶发抖动，`--pull=always` 或重跑 pull。
 4. 确认 insecure-registries 已含 `<NODE_IP>:5000`，否则返回 `http: server gave HTTP response to HTTPS client`。
@@ -211,7 +211,7 @@ ls /usr/bin/nvidia-container*       # toolkit 是否安装
 **处置**：
 
 ```bash
-showmount -e <NODE_IP>          # .58 是否仍导出
+showmount -e <NODE_IP>          # <MGMT_OCTET> 是否仍导出
 mount -a                          # 重挂 fstab 条目
 mount | grep models-nfs
 ```
@@ -235,7 +235,7 @@ mount | grep models-nfs
 
 | 项 | 说明 | 计划 |
 |---|---|---|
-| 仅 Wi-Fi 链路 | .55 未接有线/RoCE，大流量受限 | 有线/RoCE 组网后同步源切 10.100.136.x |
+| 仅 Wi-Fi 链路 | <MGMT_OCTET> 未接有线/RoCE，大流量受限 | 有线/RoCE 组网后同步源切 10.100.136.x |
 | 156G 大模型首拉未实测 | 预计 25-35 分钟 | 接入后实测并登记 |
 | 防火墙未启用 | 集群层待办 | 统一防火墙策略 |
-| registry 单点（.58） | 无副本 | 备份至 .60，规划高可用 |
+| registry 单点（<MGMT_OCTET>） | 无副本 | 备份至 <MGMT_OCTET>，规划高可用 |

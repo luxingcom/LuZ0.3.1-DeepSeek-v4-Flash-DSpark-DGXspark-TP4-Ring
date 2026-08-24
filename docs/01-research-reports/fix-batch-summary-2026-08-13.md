@@ -3,7 +3,7 @@
 **日期**：2026-08-13
 **工作流**：修复批次（基于双向审核结论的低风险整改执行）
 **参与成员**：Rex（SRE·系统级 8 项）、Cody（代码审查·脚本级 3 项）、Zhen（汇编+抽检验收）
-**范围**：node01~04（<NODE_IP>~189）
+**范围**：node01~04（<NODE_IP>~<MGMT_OCTET>）
 **红线**：全程未重启/停止任何 vLLM 容器与 aicad 业务容器；唯一例外 Prometheus SIGHUP 优雅重载；每处修改前备份至 `<INSTALL_DIR>/backups/fix-20260813/`
 
 ---
@@ -88,7 +88,7 @@
 - 本批次为**低风险整改**：所有涉及服务重启、容器重建、凭据轮换的操作均未执行，等维护窗口与用户裁决。
 - 脚本修改（monitor/shim/unit）已 `bash -n` 与只读校验，但**未做变更后重启演练**——下次自然重启/维护窗口应复核（尤其 shim-deploy 的 deploy 路径）。
 - 文档明文密码清除只覆盖 `<INSTALL_DIR>/docs/`；历史备份、shell history、旧归档中可能仍含明文（Rex 已在 .bak 归档时注意，但历史 history 未清）。
-- Prometheus job 旧命名（.55/.58/.59/.60）本轮未动（会破坏 Grafana 面板），列为面板协同改造项。
+- Prometheus job 旧命名（<MGMT_OCTET>/<MGMT_OCTET>/<MGMT_OCTET>/<MGMT_OCTET>）本轮未动（会破坏 Grafana 面板），列为面板协同改造项。
 
 ---
 

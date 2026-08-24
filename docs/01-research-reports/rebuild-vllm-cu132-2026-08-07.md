@@ -1,4 +1,4 @@
-# vLLM CUDA 13.2 镜像重建记录（.55/.59 canary）
+# vLLM CUDA 13.2 镜像重建记录（<MGMT_OCTET>/<MGMT_OCTET> canary）
 
 **日期**：2026-08-07
 **工作流**：vLLM cu132 镜像重建（路径选型 P1/P2/P3）+ 单机性能测试（deepseek-v4-flash-* 156G FP8）
@@ -36,12 +36,12 @@
 - **选型理由**：引用 Archi ADR（兼容矩阵、sm_121 原生 vs PTX、供应链信任、可复现性、版本与生产 0.26.x 对齐度）
 - **否决理由**（如有）：版本过旧 / 无 sm_121 / 不可复现 / 供应链不可信
 
-## 2. 环境快照（.55/.59 基线）
+## 2. 环境快照（<MGMT_OCTET>/<MGMT_OCTET> 基线）
 
 | 节点 | 角色 | 驱动 | 本机 CUDA | 磁盘/内存 | 网络 | 状态 |
 |------|------|------|-----------|-----------|------|------|
-| .55 | canary | 580.173.02 | 13.0.3 | 931G/121G | 仅 Wi-Fi | 156G 权重同步状态 |
-| .59 | canary | 同 .55 | 同 .55 | 同 .55 | 仅 Wi-Fi | |
+| <MGMT_OCTET> | canary | 580.173.02 | 13.0.3 | 931G/121G | 仅 Wi-Fi | 156G 权重同步状态 |
+| <MGMT_OCTET> | canary | 同 <MGMT_OCTET> | 同 <MGMT_OCTET> | 同 <MGMT_OCTET> | 仅 Wi-Fi | |
 
 - **前置校验**：156G FP8 在单机 121G 统一内存的加载可行性（offload/量化/分片）与实测显存占用、KV 可用量
 - JIT cache 按 CUDA 版本分键确认（防 13.0/13.2 误载）；nvcc_wrapper 架构名复核
@@ -51,7 +51,7 @@
 | 阶段 | 动作（命令摘要） | 产物 | 耗时 |
 |------|------------------|------|------|
 | 镜像获取/构建 | pull/build、build-arg（TORCH_CUDA_ARCH_LIST=12.1/sm_121a、CUTE_DSL_ARCH=…） | 中间镜像 tag | |
-| 推 registry | docker push .58:5000/… | `cu132-canary-20260807` | |
+| 推 registry | docker push <MGMT_OCTET>:5000/… | `cu132-canary-20260807` | |
 | 容器拉起 | 单机 run（host 网络/卷/端口） | 容器名 | |
 | 冒烟 | §4 版本表命令 | 记录 | |
 | 性能 | 见测试报告 | 数据文件路径 | |
@@ -89,7 +89,7 @@
 
 - 结论：✅/🟡/❌（引用三段式句式）
 - **是否值得推进生产**：理由（性能收益 / 风险 / 供应链 / 上游成熟度）
-- 后续：① 生产灰度条件与步骤（.58/.60 lockstep、tag=0.2.1-v026.0-cu132）② embed 独立升级评估 ③ 上游 anemll cu132 tag 跟踪 ④ 回滚预案引用 upgrade-cuda-13-2 §6
+- 后续：① 生产灰度条件与步骤（<MGMT_OCTET>/<MGMT_OCTET> lockstep、tag=0.2.1-v026.0-cu132）② embed 独立升级评估 ③ 上游 anemll cu132 tag 跟踪 ④ 回滚预案引用 upgrade-cuda-13-2 §6
 
 ---
 

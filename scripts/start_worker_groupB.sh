@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================
-# 组B worker(04/node01/.59) — anemll 0.2.1 LLM TP2 启动脚本 v1.0
+# 组B worker(04/node01/<MGMT_OCTET>) — anemll 0.2.1 LLM TP2 启动脚本 v1.0
 # 基线: A组 start_worker_v026r.sh 改造
 # 变更: master <NODE_IP>:25055 | 挂载 <MODELS_DIR>
 #       | NCCL 2.30.7 LD_LIBRARY_PATH 前插 | hostname 校验 node01

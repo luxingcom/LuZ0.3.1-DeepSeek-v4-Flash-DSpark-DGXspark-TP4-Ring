@@ -107,7 +107,7 @@
 
 ## 五、🟢 低（6 项）
 
-1. Prometheus job 名/标签仍用旧 .55/.58/.59/.60 命名；vllm 抓取目标含 188:8001（worker 无 API 端口）。
+1. Prometheus job 名/标签仍用旧 <MGMT_OCTET>/<MGMT_OCTET>/<MGMT_OCTET>/<MGMT_OCTET> 命名；vllm 抓取目标含 188:8001（worker 无 API 端口）。
 2. monitor_tp4_worker.sh:59-60 存在不可达死代码（`exit 1` 之后的 `docker wait ...; exit 1`）。
 3. daemon.json registry-mirrors 指向公网 daocloud/dockerproxy 加速器（镜像投毒面）。
 4. worker unit `Environment=NCCL_IB_HCA=rocep1s0f1,rocep1s0f0`（2 口）被脚本 4 口覆盖，成死配置。

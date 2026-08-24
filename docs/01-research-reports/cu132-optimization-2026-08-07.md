@@ -2,7 +2,7 @@
 
 **日期**：2026-08-07
 **工作流**：系统设计 / 技术选型评估（工作流 2 变体）
-**参与成员**：Archi（方案与判定线）/ 主理人执行实测（.55 上 venv 对照实验）
+**参与成员**：Archi（方案与判定线）/ 主理人执行实测（<MGMT_OCTET> 上 venv 对照实验）
 
 ---
 
@@ -23,7 +23,7 @@
 | cu132 全栈可行性 | 可行（nightly wheel 全 Python 版本存在）但**收益未兑现** |
 | 判定线结果 | 稳态差 <2%（Archi 判定线：<2-3% → 维持 cu130） |
 | 建议下一步 | 跟踪 PyTorch sm_121 原生 wheel 与 vLLM 上游 cu132；Path C 暂不投入 |
-| 已固化产物 | .58 registry: `vllm-gb10:0.26.1-cu132-sha-fa87aea5`（18.9GB，功能验证通过） |
+| 已固化产物 | <MGMT_OCTET> registry: `vllm-gb10:0.26.1-cu132-sha-fa87aea5`（18.9GB，功能验证通过） |
 
 ---
 
@@ -41,7 +41,7 @@
 | vLLM pypi wheel | cp38-abi3（兼容 3.12），aarch64 存在 |
 | 关键约束 | cu132 目前只有 nightly（2.13/2.14.dev），生产锁定 2.11 稳定 → **版本错位是真正限制** |
 
-## 3. 实测对比（.55 上同机同 GPU，8192³ GEMM）
+## 3. 实测对比（<MGMT_OCTET> 上同机同 GPU，8192³ GEMM）
 
 | 指标 | torch 2.11.0+cu130（现镜像） | torch 2.14.0.dev+cu132（nightly 全栈） | 差异 |
 |------|------------------------------|----------------------------------------|------|
@@ -76,7 +76,7 @@
 
 - 镜像：`<NODE_IP>:5000/vllm-gb10:0.26.1-cu132-sha-fa87aea5`（18.9GB，digest fa87aea5，manifest 200 验证）
 - 冒烟：nvcc 13.2.51 / cudart 13.2.51 / torch 2.11.0+cu130 / vLLM 0.26.1.dev0 / GB10 (12,1) / matmul OK
-- 环境：.55 本机留 venv（/tmp/cu132venv，torch 2.14+cu132）供后续复测
+- 环境：<MGMT_OCTET> 本机留 venv（/tmp/cu132venv，torch 2.14+cu132）供后续复测
 
 ## 6. 深度分析补充：vLLM sm_121a kernel 的 13.2 利用度（Archi 最终结论 + 编译层取证）
 
@@ -121,7 +121,7 @@
 |---|------|---------|--------|---------|
 | 1 | 维持 cu130 torch 决策（不投入 cu132 torch 重编） | Archi | P0 | 已定 |
 | 2 | 跟踪 PyTorch sm_121 原生 wheel 发布（发布后重测 GEMM/首载） | Archi | P2 | 持续 |
-| 3 | .59 从 .58 registry 同步拉取固化镜像（生产部署前置） | Rex | P1 | 本周 |
+| 3 | <MGMT_OCTET> 从 <MGMT_OCTET> registry 同步拉取固化镜像（生产部署前置） | Rex | P1 | 本周 |
 | 4 | 单机性能测试（Tessa C0-C6 计划，用户排期确认后执行） | Tessa | P1 | 待排期 |
 | 5 | 重建记录落盘（rebuild-vllm-cu132 骨架回填实测数据） | Docu | P2 | 本周 |
 
@@ -138,7 +138,7 @@
 ## 📚 数据来源 & 成员产出索引
 
 - Archi（架构师）：cu132 专项报告（路径对比表 / 收益盘点 / 判定线 <2-3% 维持）
-- 主理人实测：pytorch 源 wheel 清单核实（cp310-315 全版本存在）、.55 venv 对照实验（cu130 vs cu132 GEMM 数据）、.58 registry 固化验证
+- 主理人实测：pytorch 源 wheel 清单核实（cp310-315 全版本存在）、<MGMT_OCTET> venv 对照实验（cu130 vs cu132 GEMM 数据）、<MGMT_OCTET> registry 固化验证
 - 背景：eugr/spark-vllm-docker ABI 坑（vllm cu132 wheel 须配 torch cu132）、vllm-gb10 项目构建机制（VLLM_REF 参数化）
 
 ---

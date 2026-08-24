@@ -35,8 +35,8 @@
 
 ### 3.2 容器切换
 与科迪协调后**一次切换**（他已完成 tilelang.py 挂载合入脚本）：
-1. worker(.58) 先：`bash ~/start_worker_v026r.sh` → 容器 Up，probabilistic + 双 tilelang 挂载生效
-2. head(.60) 后：`bash ~/start_head_v026r.sh` → READY（330s 冷启动）
+1. worker(<MGMT_OCTET>) 先：`bash ~/start_worker_v026r.sh` → 容器 Up，probabilistic + 双 tilelang 挂载生效
+2. head(<MGMT_OCTET>) 后：`bash ~/start_head_v026r.sh` → READY（330s 冷启动）
 
 运行中容器确认：
 ```
@@ -66,7 +66,7 @@
 
 ## 4. LiteLLM per-key 模板（Task 3）
 
-### 4.1 config.yaml（worker .58，改前已备份 config.yaml.bak.20260805_150203）
+### 4.1 config.yaml（worker <MGMT_OCTET>，改前已备份 config.yaml.bak.20260805_150203）
 新增 model_list 两条（保留原 local-v4-flash / deepseek-v4-flash / local-embedding）：
 ```yaml
   - model_name: dspark-prob

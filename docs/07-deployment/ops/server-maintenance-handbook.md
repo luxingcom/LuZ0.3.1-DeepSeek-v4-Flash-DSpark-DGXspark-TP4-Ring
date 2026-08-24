@@ -1,7 +1,7 @@
 # 服务器维护手册（Server Maintenance Handbook）v1.5-R11
 
 **日期**：2026-08-12｜**维护**：Docu｜**权威文档**：`README.md`、`rollback-anchors-2026-08-12.md`、`ops/ops-discipline-quickref.md`
-**适用**：DGX Spark 4 机 TP4 生产（01=186/.60 02=187/.58 03=188/.55 04=189/.59）
+**适用**：DGX Spark 4 机 TP4 生产（01=186/<MGMT_OCTET> 02=187/<MGMT_OCTET> 03=188/<MGMT_OCTET> 04=189/<MGMT_OCTET>）
 **本版变更**：R11 修复后配置基线（seqs=6、isolcpus=8-9、EngineCore 15-19、capture 64、StartLimit 1800/20、互杀守卫、本地 serving）
 
 ---
@@ -45,7 +45,7 @@
 | node-exporter | 四机 | 9100 | 容器 | `curl 127.0.0.1:9100/metrics` |
 | dcgm-exporter | 四机 | 9400 | 容器 | `curl 127.0.0.1:9400/metrics` |
 
-> 端口以 2026-08-13 `docker ps` 实测为准；vLLM/litellm 为 host 网络（无端口映射）。网关 8003 上游：chat→.186:8001，embed→.188:8022。
+> 端口以 2026-08-13 `docker ps` 实测为准；vLLM/litellm 为 host 网络（无端口映射）。网关 8003 上游：chat→<MGMT_OCTET>:8001，embed→<MGMT_OCTET>:8022。
 
 ## 2. 配置基线（R11 参数全集，生产脚本实测 8/12 23:33）
 

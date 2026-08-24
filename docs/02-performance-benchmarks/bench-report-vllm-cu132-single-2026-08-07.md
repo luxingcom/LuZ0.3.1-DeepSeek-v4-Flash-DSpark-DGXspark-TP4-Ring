@@ -1,7 +1,7 @@
 # vLLM cu132 单机性能测试报告（模板）
 
 **日期**：2026-08-07
-**范围**：.55/.59 单机 TP1，模型 deepseek-v4-flash-*（156G FP8）
+**范围**：<MGMT_OCTET>/<MGMT_OCTET> 单机 TP1，模型 deepseek-v4-flash-*（156G FP8）
 **关联**：`rebuild-vllm-cu132-2026-08-07.md` §5；历史基线 `runbook-dspark-vllm` §3.4（TP2）
 **执行/编写**：Tessa（测试）/ Docu（模板）
 

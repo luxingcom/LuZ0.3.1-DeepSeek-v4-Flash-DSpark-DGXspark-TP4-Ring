@@ -8,7 +8,7 @@
 
 ## 1. 03/04 GID 表检查命令与决策规则
 
-**背景**：A组 .60 系统重启后 RoCE GID index 3 为空 → `ibv_modify_qp failed 61` → 需 `NCCL_IB_GID_INDEX=2`（GID2=<NODE_IP> 有效）。03/04 是新建 RoCE 段（138/139），部署前必须逐机查 GID 表。
+**背景**：A组 <MGMT_OCTET> 系统重启后 RoCE GID index 3 为空 → `ibv_modify_qp failed 61` → 需 `NCCL_IB_GID_INDEX=2`（GID2=<NODE_IP> 有效）。03/04 是新建 RoCE 段（<RING_SUBNET>），部署前必须逐机查 GID 表。
 
 ```bash
 # ① 列出 RoCE/IB 设备（对照 NCCL_IB_HCA 取值）
@@ -31,7 +31,7 @@ done
 - GID 值 **全零**（`00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00`）= 无效/空 → **不可用**
 - 可用 GID 应为 RoCEv2 形态：`fe80::...`（link-local）或 `0000:...:ffff:<iphex>`（IPv4 GID，如 <NODE_IP> → `0000:0000:0000:0000:0000:ffff:0a64:8a02`）
 - **取第一个非零且为 RoCEv2 形态的 idx 作为 NCCL_IB_GID_INDEX**；03/04 双 HCA（rocep1s0f1 / roceP2p1s0f1）通常一致，若不一致以 rocep1s0f1 为准
-- **判定输出**：若有效 GID 在 idx2 → `NCCL_IB_GID_INDEX=2`（与 A组 .60 相同）；若在 idx3 → `=3`；全空 → 检查 `ibstat`/驱动（部署阻塞）
+- **判定输出**：若有效 GID 在 idx2 → `NCCL_IB_GID_INDEX=2`（与 A组 <MGMT_OCTET> 相同）；若在 idx3 → `=3`；全空 → 检查 `ibstat`/驱动（部署阻塞）
 - 脚本默认 `NCCL_IB_GID_INDEX=2`，检查结果不同时用 `NCCL_IB_GID_INDEX=<N> bash start_*.sh` 覆盖
 
 **辅助验证（RoCE 链路/MTU）**：
@@ -39,7 +39,7 @@ done
 # jumbo ping 互达（MTU 9000），期望 0% 丢包、RTT<1ms
 ssh node01 "ping -c 3 -s 8972 <NODE_IP>; ping -c 3 -s 8972 <NODE_IP>"
 ssh node01 "ping -c 3 -s 8972 <NODE_IP>"
-# 邻接表：03 只应见 138.3/139.3（独立段确认）
+# 邻接表：03 只应见 <RING_SUBNET>/<RING_SUBNET>（独立段确认）
 ssh node01 "ip -4 addr show | grep 10.100.13; ip neigh | grep 10.100.13"
 ```
 
@@ -65,7 +65,7 @@ ssh node01 "ip -4 addr show | grep 10.100.13; ip neigh | grep 10.100.13"
 
 **serve 参数基线（与 A组一致）**：`--kv-cache-dtype nvfp4_ds_mla`、`--max-num-seqs 6`、`--speculative-config dspark/5-token/probabilistic`、`--moe-backend flashinfer_b12x`、`--distributed-executor-backend mp`、`--enable-flashinfer-autotune`、`--max-cudagraph-capture-size 24`、`--api-key <API_KEY>-11282...`、`--distributed-timeout-seconds 300`、`--served-model-name deepseek-v4-flash-0731`。
 
-**可选未启用**：`/opt/patch-v026`（A组 tilelang 两档 patch）——21.6G anemll fork 已含 mp KV fix；若组B JIT/性能异常再从 .58 拷贝 patch 对齐。
+**可选未启用**：`/opt/patch-v026`（A组 tilelang 两档 patch）——21.6G anemll fork 已含 mp KV fix；若组B JIT/性能异常再从 <MGMT_OCTET> 拷贝 patch 对齐。
 
 ---
 
@@ -80,7 +80,7 @@ for h in node01 node01; do
           du -sh <MODELS_DIR>/deepseek-v4-flash-0731; free -g | head -2;
           test -f <INSTALL_DIR>/envs/nvcc_wrapper.py && echo nvcc_wrapper:OK || echo nvcc_wrapper:MISSING"
 done
-# 若 nvcc_wrapper MISSING（关键坑位：.55/.59 曾误建为目录）→ 从 .58 拷贝并校验 1710B：
+# 若 nvcc_wrapper MISSING（关键坑位：<MGMT_OCTET>/<MGMT_OCTET> 曾误建为目录）→ 从 <MGMT_OCTET> 拷贝并校验 1710B：
 ssh node01 "mkdir -p <INSTALL_DIR>/envs && scp node01:<INSTALL_DIR>/envs/nvcc_wrapper.py <INSTALL_DIR>/envs/ && wc -c <INSTALL_DIR>/envs/nvcc_wrapper.py"
 ssh node01 "mkdir -p <INSTALL_DIR>/envs && scp node01:<INSTALL_DIR>/envs/nvcc_wrapper.py <INSTALL_DIR>/envs/ && wc -c <INSTALL_DIR>/envs/nvcc_wrapper.py"
 # 权重完整性：48 分片/156G + 校验清单（若 <MODELS_DIR> 有 sha256sums.txt）
@@ -111,13 +111,13 @@ ssh node01 "bash <INSTALL_DIR>/scripts/start_worker_groupB.sh"    # 3) worker �
 
 | # | 风险 | 评估 | 缓解 |
 |---|------|------|------|
-| 1 | **A组（01+02）不受影响** | 🟢 低 | RoCE 段独立（03/04=138/139 vs 01/02=136/137）、宿主不同、端口不重叠（A组 TCPStore 25000@136.1、API 8001@.60；组B 25055@138.2、8001@.55）。确认：§1 `ip neigh` 只含对端；部署前后各打一次 A组 `http://<NODE_IP>:8001/health` 应持续 200 |
+| 1 | **A组（01+02）不受影响** | 🟢 低 | RoCE 段独立（03/04=<RING_SUBNET> vs 01/02=<RING_SUBNET>）、宿主不同、端口不重叠（A组 TCPStore 25000@<RING_SUBNET>、API 8001@<MGMT_OCTET>；组B 25055@<RING_SUBNET>、8001@<MGMT_OCTET>）。确认：§1 `ip neigh` 只含对端；部署前后各打一次 A组 `http://<NODE_IP>:8001/health` 应持续 200 |
 | 2 | **内存临界（主要风险）** | 🟠 中高 | 组B 03/04 仅 95G 可用/机，A组基线 ~98-107G/机（LLM 权重 split ~78G/机 + KV）。脚本用 util 0.88 + max-model-len 131072 压入；若 head 加载 OOM/`CUDA OOM` → 降 `--gpu-memory-utilization 0.80` 或 `--max-num-seqs 4`；全程 `free -g` 监控 |
-| 3 | **nvcc_wrapper.py 缺失/被建目录** | 🟠 中 | .55/.59 曾现 `/tmp/env-e-build/nvcc_wrapper.py` 为目录 → 挂载失败/deepgemm JIT Assertion。部署前强制预检 + 从 .58 拷贝 1710B（阶段 0） |
-| 4 | **embed 卸载对 litellm 池** | 🟠 中（用户已批准） | 当前池成员需实查：`ssh node01 "grep -A20 local-embedding /home/<USER>/litellm/config.yaml | grep -E 'api_base|model'"`。若池={03:8020,04:8020} → 卸载后 **0 节点 → embeddings 500/超时（预期）**；若含 .58:8022(anemll) → 剩 1 节点（无 HA、单点负载）。测试期如必须保留生产 embed，可暂缓卸载 04 或用 .58:8022 兜底。恢复：测试完 `docker run` 重启 embed-qwen3-vllm → /health 200 → litellm cooldown(30s)/allowed_fails 后自动回纳 |
+| 3 | **nvcc_wrapper.py 缺失/被建目录** | 🟠 中 | <MGMT_OCTET>/<MGMT_OCTET> 曾现 `/tmp/env-e-build/nvcc_wrapper.py` 为目录 → 挂载失败/deepgemm JIT Assertion。部署前强制预检 + 从 <MGMT_OCTET> 拷贝 1710B（阶段 0） |
+| 4 | **embed 卸载对 litellm 池** | 🟠 中（用户已批准） | 当前池成员需实查：`ssh node01 "grep -A20 local-embedding /home/<USER>/litellm/config.yaml | grep -E 'api_base|model'"`。若池={03:8020,04:8020} → 卸载后 **0 节点 → embeddings 500/超时（预期）**；若含 <MGMT_OCTET>:8022(anemll) → 剩 1 节点（无 HA、单点负载）。测试期如必须保留生产 embed，可暂缓卸载 04 或用 <MGMT_OCTET>:8022 兜底。恢复：测试完 `docker run` 重启 embed-qwen3-vllm → /health 200 → litellm cooldown(30s)/allowed_fails 后自动回纳 |
 | 5 | **GID index 空** | 🟠 中 | 03/04 新建 RoCE 段未经验证 → 先 §1 检查；`ibv_modify_qp failed 61` 即 GID 空 → 按表覆写 `NCCL_IB_GID_INDEX` |
 | 6 | **镜像 digest 不一致** | 🟡 低 | 03/04 均需 9ea563a724d4（21.6G）；用同 IMG tag，部署前 `docker images --digests` 复核 |
-| 7 | **21.6G vs 34.2G head 差异** | 🟡 低 | A组 head 用 34.2G 完整版；组B 双 21.6G。版本串已实测一致（0.26.1.dev0，mismatch 归因时序竞态），但 tilelang 两档 patch 未验证 → 若 JIT/性能异常从 .58 拷 patch 或评估拉 34.2G |
+| 7 | **21.6G vs 34.2G head 差异** | 🟡 低 | A组 head 用 34.2G 完整版；组B 双 21.6G。版本串已实测一致（0.26.1.dev0，mismatch 归因时序竞态），但 tilelang 两档 patch 未验证 → 若 JIT/性能异常从 <MGMT_OCTET> 拷 patch 或评估拉 34.2G |
 
 ---
 

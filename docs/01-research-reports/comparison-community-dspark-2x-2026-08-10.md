@@ -86,7 +86,7 @@
 ### 2.2 单 HCA vs twin 双 HCA
 
 - 社区：`NCCL_IB_HCA=rocep1s0f1`（单逻辑口），`NCCL_SOCKET_IFNAME=enp1s0f1np1`（单口）。
-- 我方：`NCCL_IB_HCA=rocep1s0f1,roceP2p1s0f1`（twin 双逻辑口，01↔02 走 module1 的 136/137 双子网；02↔04 走 module0），`NCCL_SOCKET_IFNAME=enp1s0f1np1,enP2p1s0f1np1`。
+- 我方：`NCCL_IB_HCA=rocep1s0f1,roceP2p1s0f1`（twin 双逻辑口，01↔02 走 module1 的 <RING_SUBNET> 双子网；02↔04 走 module0），`NCCL_SOCKET_IFNAME=enp1s0f1np1,enP2p1s0f1np1`。
 
 **分析**：twin 把单物理链路的两个逻辑通道并行化（实测 twin 并行带宽 188G vs 单口 ~111G）。decode 阶段链路仅用 ~2%（MLA 压缩后通信极低），twin 收益集中在 **prefill**（131K 全量 prefill 单批 47GB 通信）。社区 decode 导向配方单口足够；我方有长 ctx prefill 与未来 TP4 需求，twin 是正确的冗余+带宽投资。
 
@@ -227,7 +227,7 @@
 |----|------|------|------|
 | 数据面 TCP | 无限制（直连裸跑） | 只放 NCCL 控制 TCP（对端 IP + 25000 + ESTABLISHED），其余 DROP | 我方安全加固，但属"语义削弱"（数据面不再是 0 TCP） |
 | NCCL_SOCKET_IFNAME | 数据口（与 TP/GLOO 一致） | 数据口（enp1s0f1np1,enP2p1s0f1np1）+ GLOO 已改管理口 enP7s7 | 我方 GLOO 已隔离；NCCL 控制面仍走数据面 |
-| 风险 | 无防火墙，内网任意访问 | ①漏 <NODE_IP>/24（NCCL 可能任选 136/137 逻辑口）②整 /24 放行偏宽 ③TCP 与 RoCE 同链路 → +128% 延迟（60% 背景实测） | 需补 137 子网或切管理口方案 |
+| 风险 | 无防火墙，内网任意访问 | ①漏 <NODE_IP>/24（NCCL 可能任选 <RING_SUBNET> 逻辑口）②整 /24 放行偏宽 ③TCP 与 RoCE 同链路 → +128% 延迟（60% 背景实测） | 需补 137 子网或切管理口方案 |
 
 **架构判断**：
 - 我方防火墙收窄是 **audit-cluster-4node 安全整改的直接产出**（四机暴露在 Wi-Fi 段、无认证 registry），方向正确。
@@ -242,7 +242,7 @@
 ### 7.3 earlyoom —— 应采纳社区建议
 
 - 社区明确：`sudo systemctl stop earlyoom && sudo systemctl disable earlyoom`，原因是高 GPU 压力下可能误杀 vLLM worker/head（即使系统有 swap）。
-- 我方现状：**未处理**。且 audit-cluster-4node 已记录 **.58 内存耗尽风险 + LLM worker Exited(137) 疑似 OOM**；GB10 统一内存使 GPU 工作集计入主机内存，earlyoom 恰好会把"GPU 压力"误判为"主机 OOM"。
+- 我方现状：**未处理**。且 audit-cluster-4node 已记录 **<MGMT_OCTET> 内存耗尽风险 + LLM worker Exited(137) 疑似 OOM**；GB10 统一内存使 GPU 工作集计入主机内存，earlyoom 恰好会把"GPU 压力"误判为"主机 OOM"。
 - **建议**：四机执行禁用（需 sudo），或配置 earlyoom 白名单保护 vLLM/embed 进程；同时补内存告警阈值（audit 遗留 P0 项）。优先级 P1。
 
 ### 7.4 其余运维项

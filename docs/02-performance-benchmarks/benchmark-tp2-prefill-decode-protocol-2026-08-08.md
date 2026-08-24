@@ -78,17 +78,17 @@ decode_tps  = (completion_tokens - 1) / (total - TTFT)
 
 ## 8. 组 B（55+59）前置检查清单
 
-1. **LLM TP2 部署**：anemll + mp executor，master `<NODE_IP>:25055`（= .55，rank0），node-rank 0/1；**head 端点 = .55:8001**。
-2. **权重**：.55 156G ✓、.59 156G ✓（已确认）。
-3. **互联**：55→59 免密已建（别名 gx10-59）；RoCE 200G RTT ~0.8ms；启动须 head-first 严格时序 + `NCCL_IB_GID_INDEX=2`（如遇 GID3 空，参照 .60 坑位）。
+1. **LLM TP2 部署**：anemll + mp executor，master `<NODE_IP>:25055`（= <MGMT_OCTET>，rank0），node-rank 0/1；**head 端点 = <MGMT_OCTET>:8001**。
+2. **权重**：<MGMT_OCTET> 156G ✓、<MGMT_OCTET> 156G ✓（已确认）。
+3. **互联**：55→59 免密已建（别名 gx10-59）；RoCE 200G RTT ~0.8ms；启动须 head-first 严格时序 + `NCCL_IB_GID_INDEX=2`（如遇 GID3 空，参照 <MGMT_OCTET> 坑位）。
 4. **NCCL 层 sanity**：`--sanity-log <head启动日志>` 判定 rank0/1 真正互连（防 HTTP 200 但 TP 未配对）；FAIL 即中止。
 5. **/v1/models** 确认 served model 名（脚本自动核对，不在列表自动选第一个）。
 6. **Grafana 抓取**：当前只抓 `<NODE_IP>:8001`，组 B 期间需 SRE 加 scrape target `<NODE_IP>:8001`（`node=head-55`），否则面板无组 B 数据。
 
 ## 9. Embed 卸载规则（用户要求：测哪组卸哪组）
 
-- **测组 A（58+60）**：卸载 .58/.60 的 embed（anemll 8022 等，.60 曾因 LLM head 107G + embed 12G CUDA OOM），由对侧组 .55/.59 提供（litellm 池自动 failover）。
-- **测组 B（55+59）**：卸载 .55/.59 的 embed，由 .58/.60 提供。
+- **测组 A（58+60）**：卸载 <MGMT_OCTET>/<MGMT_OCTET> 的 embed（anemll 8022 等，<MGMT_OCTET> 曾因 LLM head 107G + embed 12G CUDA OOM），由对侧组 <MGMT_OCTET>/<MGMT_OCTET> 提供（litellm 池自动 failover）。
+- **测组 B（55+59）**：卸载 <MGMT_OCTET>/<MGMT_OCTET> 的 embed，由 <MGMT_OCTET>/<MGMT_OCTET> 提供。
 - 目的：释放 GPU 内存、保证 LLM 纯负载无 embed 争抢，得到可对比的纯 LLM prefill/decode 速度。
 - 验证：`docker ps` 确认 embed 容器停 + litellm health 通过（对侧提供 200）。
 
@@ -106,14 +106,14 @@ decode_tps  = (completion_tokens - 1) / (total - TTFT)
 ## 11. 命令块
 
 ```bash
-# 组 A（58+60，head .60:8001；先卸 .58/.60 embed）
+# 组 A（58+60，head <MGMT_OCTET>:8001；先卸 <MGMT_OCTET>/<MGMT_OCTET> embed）
 python3 bench_prefill_decode_async.py --group A \
   --endpoint http://<NODE_IP>:8001/v1 \
   --key <API_KEY>-<KEY> --model deepseek-v4-flash-0731 \
   --concurrency 1,3,5 --ctx 512,4096,16384,65536,131072 \
   --tasks coding,json,prose --rounds 3 --engine asyncio --out ./results_A
 
-# 组 B（55+59，head .55:8001；先卸 .55/.59 embed；LLM TP2 部署后）
+# 组 B（55+59，head <MGMT_OCTET>:8001；先卸 <MGMT_OCTET>/<MGMT_OCTET> embed；LLM TP2 部署后）
 python3 bench_prefill_decode_async.py --group B \
   --endpoint http://<NODE_IP>:8001/v1 \
   --key <API_KEY>-<KEY> --model deepseek-v4-flash-0731 \

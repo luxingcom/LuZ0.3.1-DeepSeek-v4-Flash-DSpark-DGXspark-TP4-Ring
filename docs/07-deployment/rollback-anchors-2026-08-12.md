@@ -1,7 +1,7 @@
 # 回滚锚点与降级引用手册 v1.5-R11（Rollback Anchors & Fallback Reference）
 
 **日期**：2026-08-12（R11 修订）｜**维护**：Docu｜**权威路径**：`<INSTALL_DIR>/docs/rollback-anchors-2026-08-12.md`（01/02 镜像）
-**适用范围**：DGX Spark 4 机 TP4 生产集群（01=node01/.60/186，02=node01/.58/187，03=node01/.55/188，04=node01/.59/189）
+**适用范围**：DGX Spark 4 机 TP4 生产集群（01=node01/<MGMT_OCTET>/186，02=node01/<MGMT_OCTET>/187，03=node01/<MGMT_OCTET>/188，04=node01/<MGMT_OCTET>/189）
 **当前生产栈（R11）**：shim **v8** + util **0.65** + **seqs=6** + fix72 capture(64/1..64) + Prefix KV + 400k + 本地 serving（NFS 集中化恢复中）+ systemd 自愈（StartLimit **1800/20** + 互杀守卫 + 门禁）+ TP4 环网（start_tp4_* 系列），8001=200
 
 > 本文件为 R11 修订版，**取代**旧版同文件（旧版在本地 `deliverables/engineering-assurance/rollback-anchors-2026-08-12.md` 保留）。变更点：shim 回滚锚点升级为 v8 链、新增 R11 脚本 `.bak-r11` 体系、StartLimit 值更新、互杀守卫说明。
@@ -78,7 +78,7 @@
 ### 2.6 镜像 tag 锚点
 - `<NODE_IP>:5000/anemll/dspark-vllm-gx10:0.2.1-v026.0`（TP4/TP2 生产，四机一致）✅
 - `dspark-vllm-gx10:0.2.1-archi-test`（阿奇 A/B 在用）🔴 不动
-- 历史 tag（.58:5000 0.1.1 / 0.2.1-v026.0 副本）🟡 可保留作回退
+- 历史 tag（<MGMT_OCTET>:5000 0.1.1 / 0.2.1-v026.0 副本）🟡 可保留作回退
 
 ### 2.7 其他 backup/ 归档
 - `rollback_tp4-rank{0-3}.json`（四机 backup/，每次启停覆写）

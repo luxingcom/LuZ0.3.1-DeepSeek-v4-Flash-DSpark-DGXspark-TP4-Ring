@@ -157,7 +157,7 @@ DeepSeek V4 Flash MoE 真实 shape：w1/w3 = A[M,4096]×W[4096→2048]（K=4096,
 - 候选：tile {128×128×128, 128×128×256} × epi {128×128, 64×32}，4 个 shape 配置 × 4 组合。
 - **tile_k=256 全部编译失败**：DSL 报 `tCrSFA_copy_view_filtered` 布局 congruence 错误（vendored pingpong L944）——**MXF4（sf_vec=32）路径下 tile_k 固定为 128**，128×128×256 名义允许但实际不可用。tile 空间实际锁定 128×128×128。
 - epi 128×128 在 M≥1024 一致优于 64×32（+3~7%）；小 M 差异 <2%。全部配置选 128³ + epi 128×128。
-- sweep 代表值（KO TFLOPS）：w1@M=4096 321.0（epi 128×128）vs 305.5（64×32）；bigN@M=4096 360.8 vs 356.5；bigK@M=4096 142.8 vs 139.3。
+- sweep 代表值（KO TFLOPS）：w1@M=4096 321.0（epi 128×128）vs 305.5（64×32）；bigN@M=4096 360.8 vs 356.5；bigK@M=4096 142.8 vs <RING_SUBNET>。
 - 选优均在 M=4096 定档（各 M 档相对排序一致，无翻转）。
 
 ---

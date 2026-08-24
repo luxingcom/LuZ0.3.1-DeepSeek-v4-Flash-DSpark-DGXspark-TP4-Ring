@@ -189,7 +189,7 @@ python3 transcode_0731_to_nvfp4.py index     SRC_DIR OUT_DIR           # 重写 
 - 每次运行前 `--sanity-log`（若 head 日志可指定）做 NCCL init 判定，FAIL 即中止
 
 ```bash
-# 组 S（SGLang NVFP4，head .186:8001 或测试端口）
+# 组 S（SGLang NVFP4，head <MGMT_OCTET>:8001 或测试端口）
 python bench_prefill_decode_async.py --group S \
     --endpoint http://<NODE_IP>:<sglang_port>/v1 \
     --key <key> --model deepseek-v4-flash-0731-nvfp4 \

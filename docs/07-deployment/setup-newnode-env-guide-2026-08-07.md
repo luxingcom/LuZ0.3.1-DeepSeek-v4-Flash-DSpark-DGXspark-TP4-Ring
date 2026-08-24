@@ -5,23 +5,23 @@
 - 读者对象：SRE / 集群运维
 - 配套文档：《分发机制操作手册（四机版）》
 
-> **主理人汇编注（2026-08-07）**：本文由 Docu 产出，落地时按实测修正以下差异：① 分发脚本实际部署路径为 `/opt/distribution/`（非 /usr/local/bin）；② NFS 导出源实际为 `.58:/home/<USER>/models`（非 /mnt/models-nfs）；③ daemon.json 实测含 registry-mirrors 与 nvidia runtime（见 §2 S5）；④ 四机互信已含 .59。第 5+ 台节点按本 SOP 复用，仅替换 IP/主机名/SSH 别名。
+> **主理人汇编注（2026-08-07）**：本文由 Docu 产出，落地时按实测修正以下差异：① 分发脚本实际部署路径为 `/opt/distribution/`（非 /usr/local/bin）；② NFS 导出源实际为 `<MGMT_OCTET>:/home/<USER>/models`（非 /mnt/models-nfs）；③ daemon.json 实测含 registry-mirrors 与 nvidia runtime（见 §2 S5）；④ 四机互信已含 <MGMT_OCTET>。第 5+ 台节点按本 SOP 复用，仅替换 IP/主机名/SSH 别名。
 
 ## 1. 四机节点清单
 
 | 节点 | IP | 角色 | 磁盘 | 网络 | 主机标识 | 状态 | 说明 |
 |------|----|------|------|------|---------|------|------|
-| .58 | <NODE_IP> | worker（大容量中心） | 3.6T（2.4T 可用） | RoCE <NODE_IP> + Wi-Fi | aicad-server | 运行中 | registry :5000（27 repos）/ NFS 导出 312G / embed 8020 等 14 容器 |
-| .60 | <NODE_IP> | head | 3.6T（2.8T 可用） | RoCE <NODE_IP> + Wi-Fi | aicad-server60 | 运行中 | 关键镜像备份端（vllm 21G + embed 19G） |
-| .55 | <NODE_IP> | 新增小盘节点 | 931G（821G 可用） | 仅 Wi-Fi | gx10-3f4d | 已配置 | 156G 大权重同步中（首拉） |
-| .59 | <NODE_IP> | 新增小盘节点 | 931G（822G 可用） | 仅 Wi-Fi | gx10-31c4 | 已配置完成 | embed 1.2G 同步闭环 |
+| <MGMT_OCTET> | <NODE_IP> | worker（大容量中心） | 3.6T（2.4T 可用） | RoCE <NODE_IP> + Wi-Fi | aicad-server | 运行中 | registry :5000（27 repos）/ NFS 导出 312G / embed 8020 等 14 容器 |
+| <MGMT_OCTET> | <NODE_IP> | head | 3.6T（2.8T 可用） | RoCE <NODE_IP> + Wi-Fi | aicad-server60 | 运行中 | 关键镜像备份端（vllm 21G + embed 19G） |
+| <MGMT_OCTET> | <NODE_IP> | 新增小盘节点 | 931G（821G 可用） | 仅 Wi-Fi | gx10-3f4d | 已配置 | 156G 大权重同步中（首拉） |
+| <MGMT_OCTET> | <NODE_IP> | 新增小盘节点 | 931G（822G 可用） | 仅 Wi-Fi | gx10-31c4 | 已配置完成 | embed 1.2G 同步闭环 |
 
-SSH 别名（本机 Windows `~/.ssh/config`）：`gx10-55` / `gx10-59` / `aicad-server`(.58) / `aicad-server60`(.60)。
-四机互信：.55/.59 公钥已入 .58/.55/.60/.59 的 authorized_keys。
+SSH 别名（本机 Windows `~/.ssh/config`）：`gx10-55` / `gx10-59` / `aicad-server`(<MGMT_OCTET>) / `aicad-server60`(<MGMT_OCTET>)。
+四机互信：<MGMT_OCTET>/<MGMT_OCTET> 公钥已入 <MGMT_OCTET>/<MGMT_OCTET>/<MGMT_OCTET>/<MGMT_OCTET> 的 authorized_keys。
 
 ## 2. 新增节点接入 SOP（适用于第 5+ 台复用）
 
-> 操作序列 S1–S11（对应 .59 实际实施序列）；第 5+ 台仅替换示例 IP/主机名。
+> 操作序列 S1–S11（对应 <MGMT_OCTET> 实际实施序列）；第 5+ 台仅替换示例 IP/主机名。
 
 ### S1 前置检查
 ```bash
@@ -52,7 +52,7 @@ sudo systemctl start docker
 docker version --format '{{.Server.Version}}'   # 期望: 29.2.1
 ```
 常见坑：
-- **buildkit invalid database**：先 `mv` 备份，确认正常后再删除（.55/.59 实测均为此根因）。
+- **buildkit invalid database**：先 `mv` 备份，确认正常后再删除（<MGMT_OCTET>/<MGMT_OCTET> 实测均为此根因）。
 - docker 起不来：`journalctl -u docker -n 50`；`df -h /var/lib/docker` 确认空间。
 
 ### S3 docker 组（免 sudo）
@@ -118,7 +118,7 @@ ssh -o BatchMode=yes <USER>@<NODE_IP> echo SSH_OK
 - **pkill -f 自匹配**：脚本内 `pkill -f 'rsync.*deepseek'` 可能杀掉自身命令行——用 `pgrep` 取 PID 再 kill。
 - authorized_keys 权限 600、.ssh 700，否则 sshd 忽略。
 
-### S8 NFS 挂载（.58 只读冷访问）
+### S8 NFS 挂载（<MGMT_OCTET> 只读冷访问）
 ```bash
 sudo mkdir -p /mnt/models-nfs <MODELS_DIR> /opt/distribution
 sudo mount -t nfs -o ro,soft,timeo=50,retrans=2,nfsvers=4 <NODE_IP>:/home/<USER>/models /mnt/models-nfs
@@ -128,11 +128,11 @@ echo '<NODE_IP>:/home/<USER>/models /mnt/models-nfs nfs ro,soft,timeo=50,retrans
 sudo chown -R <USER>:<USER> <MODELS_DIR>
 sudo touch /var/log/distribution.log && sudo chown <USER>:<USER> /var/log/distribution.log
 ```
-常见坑：`mount.nfs: access denied` → 检查 .58 exports（<NODE_IP>/24 已覆盖）；`ls` 卡住 → showmount -e 判断断链。
+常见坑：`mount.nfs: access denied` → 检查 <MGMT_OCTET> exports（<NODE_IP>/24 已覆盖）；`ls` 卡住 → showmount -e 判断断链。
 
 ### S9 脚本部署（/opt/distribution）
 ```bash
-# 从 .55 或 .58 拷贝（或 git 统一管理）：
+# 从 <MGMT_OCTET> 或 <MGMT_OCTET> 拷贝（或 git 统一管理）：
 # /opt/distribution/sync-model.sh      （加固版：MODEL 白名单/--timeout=600/TCPKeepAlive/重试×5-10/bwlimit 默认 20MB/s/flock）
 # /opt/distribution/cleanup-weights.sh （与 sync 共用锁/路径兜底/prune until=24h）
 # /opt/distribution/disk-watch.sh      （70% 告警/85% 严重）
@@ -177,9 +177,9 @@ tail -f /var/log/distribution.log
 ### S11 登记
 - 本机 ~/.ssh/config 加别名；节点信息登记集群 inventory；Runbook 回填。
 
-## 3. .55 与 .59 配置差异记录
+## 3. <MGMT_OCTET> 与 <MGMT_OCTET> 配置差异记录
 
-结论：**无配置差异（同构）**——仅主机标识（gx10-3f4d / gx10-31c4）、IP、SSH 别名不同；同步进度不同（.55 大权重 9.5G+ / .59 embed 闭环 + 首拉中）。
+结论：**无配置差异（同构）**——仅主机标识（gx10-3f4d / gx10-31c4）、IP、SSH 别名不同；同步进度不同（<MGMT_OCTET> 大权重 9.5G+ / <MGMT_OCTET> embed 闭环 + 首拉中）。
 
 ## 附录 A：本机 Windows SSH 别名
 ```
@@ -192,7 +192,7 @@ Host aicad-server60  # HostName <NODE_IP>
 
 ## 附录 B：新节点接入后检查清单
 - [ ] `nvidia-smi` 121Gi / driver 580.173.02
-- [ ] `docker info` Insecure Registries 含 .58:5000、Runtimes 含 nvidia
+- [ ] `docker info` Insecure Registries 含 <MGMT_OCTET>:5000、Runtimes 含 nvidia
 - [ ] `ssh aicad-server60 hostname`、`ssh gx10-55 hostname` 免密
 - [ ] `mount | grep models-nfs` ro 挂载
 - [ ] `sync-model.sh Qwen3-Embedding-0.6B` 闭环 + `sha256sum -c` OK

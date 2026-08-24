@@ -12,7 +12,7 @@
 - 四台服务器 16 个 ConnectX-7 200G 口**全部 UP、200G/Full/RS-FEC/MTU9000、rdma ACTIVE**，无降速、无 link flap、无悬空口、无错连 → **物理层连线正确（Go）**。
 - 三段核心连接 01↔02（module1/A 组）、02↔04（module0/10.20.0.x）、01↔03（module0/新接线）均经 LLDP + ARP/NDP + IPv6 ping 双源确认。
 - ⚠️ **1 项 P1 信号质量异常**：03 号机 module0 两口 FEC corrected=2280（他机 3~305），01↔03 段光路/线缆疑似劣化，未降速但持续纠错，需整改。
-- 🆕 **拓扑新发现**：03↔04 module1（B 组 RoCE 138/139）亦在线，四机形成**闭环环网 01—02—04—03—01** —— TP4 NCCL ring 闭环的物理基础已具备（B 组连接为既定规划，建议用户确认环网为预期形态）。
+- 🆕 **拓扑新发现**：03↔04 module1（B 组 RoCE <RING_SUBNET>）亦在线，四机形成**闭环环网 01—02—04—03—01** —— TP4 NCCL ring 闭环的物理基础已具备（B 组连接为既定规划，建议用户确认环网为预期形态）。
 
 ---
 
@@ -51,7 +51,7 @@
 | 01↔02 | module1（A 组） | 01.enp1s0f1np1 ↔ 02.enp1s0f1np1（<NODE_IP>↔.2）；01.enP2p1s0f1np1 ↔ 02.enP2p1s0f1np1（<NODE_IP>↔.2） | ✅ | 15 / 36 |
 | 02↔04 | module0 | 02.enp1s0f0np0 ↔ 04.enp1s0f0np0（<NODE_IP>↔.10）；02.enP2p1s0f0np0 ↔ 04.enP2p1s0f0np0（<NODE_IP>↔.14） | ✅ | 0~36 |
 | 01↔03 | module0（新接线） | 03.enp1s0f0np0/enP2p1s0f0np0 ↔ 01 对应两口；IPv6 link-local 双向往返通，LLDP 2×2 交叉可见 | ❌ 无 IP | ⚠️ 03 侧 2280 |
-| 03↔04 | module1（B 组，既定规划） | 03 ↔ 04（<NODE_IP>↔.3、139.2↔.3） | ✅ | 0 / 25 |
+| 03↔04 | module1（B 组，既定规划） | 03 ↔ 04（<NODE_IP>↔.3、<RING_SUBNET>↔.3） | ✅ | 0 / 25 |
 
 > 拓扑形态：**环网 01—02—04—03—01**（原"链式 04—02—01"描述已过时）
 

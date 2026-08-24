@@ -42,16 +42,16 @@ ssh aicad-server60 'nohup bash ~/start_v026r_cluster.sh > ~/v026r_cluster_runN.l
                         │
         ┌───────────────┴───────────────┐
         ▼                               ▼
- LiteLLM 4000 (worker .58)        自建网关 8003 (worker .58)
+ LiteLLM 4000 (worker <MGMT_OCTET>)        自建网关 8003 (worker <MGMT_OCTET>)
  master/prob/greedy/chat/embed    客户端 key <API_KEY>-*
         └───────────────┬───────────────┘
                         ▼
-      vLLM head .60 (rank0, :8001) ── TP=2 NCCL/RoCE ──► vLLM worker .58 (rank1)
+      vLLM head <MGMT_OCTET> (rank0, :8001) ── TP=2 NCCL/RoCE ──► vLLM worker <MGMT_OCTET> (rank1)
                         ▲        (<NODE_IP> ↔ <NODE_IP>, TCPStore :25000)
         ┌───────────────┴───────────────┐
         ▼                               ▼
  Embed 8020 (127.0.0.1)         PG 5432 (127.0.0.1)
- (worker .58, embed-qwen3-gpu)  (LiteLLM 依赖，本机消费)
+ (worker <MGMT_OCTET>, embed-qwen3-gpu)  (LiteLLM 依赖，本机消费)
 ```
 
 - head = <NODE_IP>（spark-05cd，RoCE <NODE_IP>）；worker = <NODE_IP>（edgexpert-0c69，RoCE <NODE_IP>）
@@ -66,12 +66,12 @@ ssh aicad-server60 'nohup bash ~/start_v026r_cluster.sh > ~/v026r_cluster_runN.l
 
 | 服务 | 主机 | 端口/地址 | 鉴权 key | 镜像/版本 | restart/守护 |
 |------|------|-----------|----------|-----------|--------------|
-| vLLM head（rank0） | .60 | 8001 | `<API_KEY>-11282c642841cb21092911db1135e2528d34eb881abc9bfa` | `ghcr.io/anemll/dspark-vllm-gx10:0.2.1-v026.0`（vLLM 0.26.1dev） | unless-stopped |
-| vLLM worker（rank1） | .58 | 无对外端口 | 同上（内部） | 同上 | unless-stopped |
-| 自建网关 | .58 | 8003 | `<API_KEY>-64b0374c6f2840fe` | responses_gateway v1.5.0（hardened/live） | systemd active |
-| LiteLLM | .58 | 4000 | 见 §6 双轨 key 表 | LiteLLM 1.83.7 | 容器 unless-stopped |
-| PostgreSQL | .58 | 5432（仅 127.0.0.1） | PG 明文（待轮换） | LiteLLM 依赖 | 卷 + 备份 cron |
-| Embed 服务 | .58 | 8020（已绑 127.0.0.1） | 内部（仅网关转发） | `embed-gpu:anemll-0.1.1-st5.6.1` | systemd + unless-stopped |
+| vLLM head（rank0） | <MGMT_OCTET> | 8001 | `<API_KEY>-11282c642841cb21092911db1135e2528d34eb881abc9bfa` | `ghcr.io/anemll/dspark-vllm-gx10:0.2.1-v026.0`（vLLM 0.26.1dev） | unless-stopped |
+| vLLM worker（rank1） | <MGMT_OCTET> | 无对外端口 | 同上（内部） | 同上 | unless-stopped |
+| 自建网关 | <MGMT_OCTET> | 8003 | `<API_KEY>-64b0374c6f2840fe` | responses_gateway v1.5.0（hardened/live） | systemd active |
+| LiteLLM | <MGMT_OCTET> | 4000 | 见 §6 双轨 key 表 | LiteLLM 1.83.7 | 容器 unless-stopped |
+| PostgreSQL | <MGMT_OCTET> | 5432（仅 127.0.0.1） | PG 明文（待轮换） | LiteLLM 依赖 | 卷 + 备份 cron |
+| Embed 服务 | <MGMT_OCTET> | 8020（已绑 127.0.0.1） | 内部（仅网关转发） | `embed-gpu:anemll-0.1.1-st5.6.1` | systemd + unless-stopped |
 
 > 模型 `deepseek-v4-flash-0731`（SERVED）；seqs=6，600K ctx，spec decode：probabilistic + 动态K `[[1,1,5],[2,4,4],[5,6,3]]` + tilelang 两档 patch + `TILELANG_CACHE_DIR` 持久卷。
 
@@ -108,7 +108,7 @@ curl -s -o /dev/null -w "%{http_code}\n" \
 1. 前置检查：双机容器须已停止
 2. 启动 head(rank0) 容器（nohup，日志 `~/start_head_v026r_cluster.log`）
 3. 轮询 head TCPStore :25000 就绪：`nc -z <NODE_IP> 25000`（或宿主 `ss -tln`），每 5s、最多 10min（实测 ~25s）
-4. `ssh DGXspark02` 执行 `~/start_worker_v026r.sh` 启动 rank1
+4. `ssh node0X` 执行 `~/start_worker_v026r.sh` 启动 rank1
 5. 轮询 head :8001 `/v1/models` 就绪（internal key，每 5s、最多 10min）
 6. 输出集群就绪
 
@@ -273,7 +273,7 @@ nc -z <NODE_IP> 25000 && echo "TCPStore OK"
 ## 5. 坑位与经验教训（避免重复造轮子）
 
 1. **NCCL 卡死 = 启动顺序反了**：vLLM TCPStore(25000) 由 rank0 在 `init_process_group` 时创建；worker 先启动是反的（旧顺序 4 次 3 挂，新顺序 3/3 成功）
-2. **SSH 别名**：head 机访问 worker 用 `DGXspark02`（<NODE_IP>），**不是** `aicad-server`（那是工作机侧别名；工作机侧 worker=`aicad-server`、head=`aicad-server60`）
+2. **SSH 别名**：head 机访问 worker 用 `node0X`（<NODE_IP>），**不是** `aicad-server`（那是工作机侧别名；工作机侧 worker=`aicad-server`、head=`aicad-server60`）
 3. **容器内 `ss` 看不到 25000**（无权限），端口探测一律用宿主机 `nc -z` / `ss -tln`
 4. **docker kill = 显式停止，不触发 restart policy**（unless-stopped 语义）；容器内进程崩溃也不自动恢复 TP 集群 → 恢复必须双机脚本重启
 5. **思考链走 8003**：F 配置仅 `enable_thinking=true` 生成思考链（网关 v1.5.0 已注入）；4000 LiteLLM responses 思考链被剥离——思考链必须走 8003
