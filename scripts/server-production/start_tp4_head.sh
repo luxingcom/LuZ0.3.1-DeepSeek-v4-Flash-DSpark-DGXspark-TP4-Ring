@@ -26,6 +26,8 @@
 # TP4 环网: 01=rank0(186) 02=rank1(187) 04=rank2(189) 03=rank3(188)
 # 控制面: MASTER_ADDR/VLLM_HOST_IP=192.168.5.186 MASTER_PORT=25999
 # 容器: vllm-tp4-rank0 --restart no
+# 保险(R12w, 2026-08-26): 容器 env PYTHONFAULTHANDLER=1 定位 worker 崩溃栈; READY 后自动预捕获 CUDA graph(conc=6,8,12,仅 rank0)
+#                 网关 concurrency-proxy MAX_CONCURRENCY=6(其余排队)
 # =============================================================
 set -euo pipefail
 
@@ -172,6 +174,7 @@ ENV_ARGS=(
   -e "PORT=${PORT}"
   -e 'PYTHONDONTWRITEBYTECODE=1'
   -e 'PYTHONUNBUFFERED=1'
+  -e 'PYTHONFAULTHANDLER=1'
   -e 'VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS=1800'
   -e 'PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True'
   -e 'SERVED_MODEL_NAME=deepseek-v4-flash-0731'
@@ -303,7 +306,21 @@ echo "[i] 等待就绪 (≤15min cold start): 轮询 docker logs 'Application st
 if [ "${NO_WAIT:-0}" = "1" ]; then echo "[i] NO_WAIT 模式: 容器已启动, 交回 monitor 跟随"; exit 0; fi
 for i in $(seq 1 180); do
   if docker logs "$NAME" 2>&1 | grep -q "Application startup complete"; then
-    echo "[ok] READY (${i}0s)"; exit 0
+    echo "[ok] READY (${i}0s)"
+    # [warmup] 容器就绪后优先预捕获 CUDA graph（conc=6,8,12），避免运行期即时捕获停顿
+    # [warmup-guard] 仅 head(rank0) 触发（误被拷贝到 worker 时 NODE_RANK != 0 直接跳过）
+    if [ "${NODE_RANK:-}" != "0" ]; then
+      echo "[warmup] 非 head(rank=${NODE_RANK:-?})，跳过预热"; exit 0
+    fi
+    if [ -f /tmp/bench_v2_mc.py ] && [ -n "$(cat /tmp/key_test.txt 2>/dev/null)" ]; then
+      KEY="$(cat /tmp/key_test.txt)"
+      WUOUT=/tmp/warmup_$(date +%Y%m%d_%H%M%S)
+      setsid nohup /tmp/benchy/bin/python /tmp/bench_v2_mc.py         --endpoint http://127.0.0.1:8001/v1 --key "$KEY"         --run-type both --concurrency 6,8,12 --warmup-conc 6,8,12 --warmup-only         --out "${WUOUT}" > "${WUOUT}.log" 2>&1 < /dev/null &
+      echo "[warmup] 已启动预捕获 PID=$! (conc=6,8,12) log=${WUOUT}.log"
+    else
+      echo "[warmup] 跳过：缺 /tmp/bench_v2_mc.py 或 key_test.txt"
+    fi
+    exit 0
   fi
   sleep 10
 done
