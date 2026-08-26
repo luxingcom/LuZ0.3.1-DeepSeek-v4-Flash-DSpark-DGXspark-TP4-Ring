@@ -35,6 +35,9 @@ data/                       基准原始数据（json/csv）
 - **缺陷处置**：`docs/04-issues/`（issue22、环境 stall、AR 调查）
 - **部署手册**：`docs/07-deployment/`（runbook、回滚锚点、服务部署指南）
 - **2026-08-26 生产加固**：`CHANGES-2026-08-26.md`（8192 批次令牌 + RoCE GID 预检 + 崩溃记录 + 四轮拦截修复）；加固脚本见 `scripts/hardening/`，集成启动脚本见 `scripts/server-production/`（旧版保留 `.bak-20260826`）
+- **2026-08-26 启动增强（LuZ0.3.1-r12w）**：`scripts/server-production/start_tp4_head.sh` 新增容器 env `PYTHONFAULTHANDLER=1`（定位 VllmWorker 静默崩溃栈）+ READY 后自动 CUDA-graph 预捕获（conc=6/8/12，仅 rank0）；网关 `concurrency_proxy.py` 入口限流 `MAX_CONCURRENCY=6`（在飞 6、其余排队，队列满 429）
+- **TP4 性能基准完整矩阵（C1~C12）**：`docs/02-performance-benchmarks/tp4-bench-full-matrix-C1toC12-2026-08-26.md`（DE coding/json/prose + PR 512~131K 全并发 p50 吞吐/TTFT；含 C12 失真标注与 131K 长前缀 model_err 软肋记录）；简版见 `tp4-bench-final-C1toC8-2026-08-26.md`
+- **基准脚本**：`scripts/bench_v2_mc.py`（多连接真并发 + `--warmup-only` 预捕获模式）；数据提取 `scripts/extract_full_matrix.py`
 
 ## 说明
 

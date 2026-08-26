@@ -49,7 +49,7 @@
 > 已按裁决修正 6 处后完成四机落地。详见 §2E「修正后落地」。
 
 ### 2A. 原 STOP 发现（head 镜像回归，已按裁决修正）
-- 生产现网(live)：`IMG="192.168.5.187:5000/anemll/dspark-vllm-gx10:0.2.1-v026.0"`，运行中容器就是该镜像，registry 实测 HTTP 200。
+- 生产现网(live)：`IMG="<registry_ip>:5000/anemll/dspark-vllm-gx10:0.2.1-v026.0"`，运行中容器就是该镜像，registry 实测 HTTP 200。
 - 集成版误写 `.186:5000`（HTTP 000 不可达）→ 触发 STOP。
 - **→ 已按裁决修正为 .187，与现网一致。**
 
@@ -82,7 +82,7 @@
 | start_tp4_cluster.sh | `7ee20fba...14c73` | ✅ | ✅ | — | — |
 
 落地后关键参数实核：
-- **01 head**: `IMG=192.168.5.187:5000` ✅ · `seqs=12` ✅ · `max-num-batched-tokens 8192` ✅ · health-cmd=`curl`(head 有 8001, 正确) ✅ · R12 头注释 ✅
+- **01 head**: `IMG=<registry_ip>:5000` ✅ · `seqs=12` ✅ · `max-num-batched-tokens 8192` ✅ · health-cmd=`curl`(head 有 8001, 正确) ✅ · R12 头注释 ✅
 - **02 worker**: `max-num-batched-tokens 8192` ✅ · health-cmd=`pgrep VLLM::EngineCore`(正确) ✅ · **PEER_HCA 计数=0**(已移除) ✅
 - **01 cluster**: STEP0 四机一致性核验在 (4 处命中) ✅
 

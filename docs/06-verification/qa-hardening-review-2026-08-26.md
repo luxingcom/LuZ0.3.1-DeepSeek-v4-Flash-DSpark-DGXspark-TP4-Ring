@@ -77,7 +77,7 @@
 
 **补修 1 项（主理人裁断必须修）**：
 - **head hostname 守卫不对齐**：head L51 只认 `dgxspark01`、cluster L90 认 `dgxspark01|spark-05cd`。
-- 证据：归档记忆 08-01 明确 `192.168.5.60 = head = spark-05cd`（`dgxspark01` 是 SSH 别名非 hostname）。
+- 证据：归档记忆 08-01 明确 `<remote_head_ip> = head = spark-05cd`（`dgxspark01` 是 SSH 别名非 hostname）。
 - 修复（sre-fix-1）：head 守卫改为同时认 `dgxspark01 | spark-05cd`，错误消息/头注释/help 同步。**功能验证**：spark-05cd=PASS、dgxspark01=PASS、other-host=FAIL ✅
 
 **残留 minor（不影响运行，可后处理）**：watchdog L91 echo 文案 "window ${LOADING_WIN}s" 语义未同步（纯展示）；healthcheck worker 分支注释承诺的"D3 dmesg 旁证"未实现（doc 过度承诺）——建议后续清理。
