@@ -19,7 +19,7 @@
      标注 own_stable=False（运行级非确定提示，不改变判定）
 
 参考快照管理:
-  - 快照目录: <INSTALL_DIR>/backup/quality-gate/
+  - 快照目录: /opt/aicad-prod/backup/quality-gate/
   - capture => reference-<UTC>.json 并更新 reference-latest.json
   - compare 默认用 reference-latest.json；--ref 可指定历史快照
   - 换基座（FI 版本/量化形态/kernel 变更）时应重新 capture 并保留旧快照
@@ -45,7 +45,7 @@ KEY = os.environ.get("VLLM_API_KEY", "")
 HDR = {"Content-Type": "application/json", "Authorization": "Bearer " + KEY}
 MODEL = "deepseek-v4-flash-0731"
 FOX = "The quick brown fox jumps over the lazy dog. "
-REF_DIR = "<INSTALL_DIR>/backup/quality-gate"
+REF_DIR = "/opt/aicad-prod/backup/quality-gate"
 REF_LATEST = os.path.join(REF_DIR, "reference-latest.json")
 
 # 稳定 prompt 集（reason/zh 已除名，见模块 docstring）

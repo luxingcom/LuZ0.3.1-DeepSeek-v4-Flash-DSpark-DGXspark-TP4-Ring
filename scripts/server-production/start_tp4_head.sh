@@ -26,8 +26,6 @@
 # TP4 环网: 01=rank0(186) 02=rank1(187) 04=rank2(189) 03=rank3(188)
 # 控制面: MASTER_ADDR/VLLM_HOST_IP=192.168.5.186 MASTER_PORT=25999
 # 容器: vllm-tp4-rank0 --restart no
-# 保险(R12w, 2026-08-26): 容器 env PYTHONFAULTHANDLER=1 定位 worker 崩溃栈; READY 后自动预捕获 CUDA graph(conc=6,8,12,仅 rank0)
-#                 网关 concurrency-proxy MAX_CONCURRENCY=6(其余排队)
 # =============================================================
 set -euo pipefail
 

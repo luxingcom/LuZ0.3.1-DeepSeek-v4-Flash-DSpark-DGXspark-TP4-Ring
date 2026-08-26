@@ -16,13 +16,13 @@
 #   5) 内存可用量
 #   6) 生产 vLLM 容器状态（信息项: 正式运行前需停止）
 # =============================================================
-# DOCS: file://<INSTALL_DIR>/docs/ops/tools-index.md
+# DOCS: file:///opt/aicad-prod/docs/ops/tools-index.md
 set -uo pipefail
 
 IMG="nvcr.io/nvidia/sglang:26.07-py3"
 EXPECT_LAYER_MD5="96e467d43b59c2362246545bacb4c9fe"
-MODEL_DIR="<INSTALL_DIR>/models/deepseek-v4-flash-0731-nvfp4"
-SSH_USER="${SSH_USER:-<USER>}"
+MODEL_DIR="/opt/aicad-prod/models/deepseek-v4-flash-0731-nvfp4"
+SSH_USER="${SSH_USER:-liuxiaoya}"
 SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new"
 
 # 节点列表
@@ -40,7 +40,7 @@ if [ "$LOCAL_ONLY" = "1" ]; then
 elif [ ${#POS[@]} -gt 0 ]; then
   NODES=( "${POS[@]}" )
 else
-  NODES=( <NODE_IP> <NODE_IP> <NODE_IP> <NODE_IP> )
+  NODES=( 192.168.5.186 192.168.5.187 192.168.5.188 192.168.5.189 )
 fi
 [ -n "${NODES:-}" ] && : || NODES=( "${NODES[@]}" )
 
@@ -76,10 +76,10 @@ for ip in "${NODES[@]}"; do
     done
     echo "=== 4. NCCL ==="
     ls -la /opt/nccl-ringonly/libnccl.so.2.30.7 >/dev/null 2>&1 && echo "ringonly OK" || echo "ringonly MISSING"
-    ls -la <INSTALL_DIR>/lib/libncclpin.so >/dev/null 2>&1 && echo "shim OK" || echo "shim MISSING"
+    ls -la /opt/aicad-prod/lib/libncclpin.so >/dev/null 2>&1 && echo "shim OK" || echo "shim MISSING"
     INMAP=$(docker run --rm \
       -v /opt/nccl-ringonly:/opt/nccl-ringonly:ro \
-      -v <INSTALL_DIR>/lib/libncclpin.so:/opt/libncclpin.so:ro \
+      -v /opt/aicad-prod/lib/libncclpin.so:/opt/libncclpin.so:ro \
       -e LD_LIBRARY_PATH=/opt/nccl-ringonly \
       -e LD_PRELOAD="/opt/libncclpin.so /opt/nccl-ringonly/libnccl.so.2" \
       '"${IMG}"' bash -c "grep libnccl /proc/self/maps 2>/dev/null | grep -oE \"libnccl\\.so\\.[0-9.]+|ncclringonly\" | sort -u | tr \"\\n\" \" \"" 2>/dev/null)
