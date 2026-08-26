@@ -34,6 +34,7 @@ data/                       基准原始数据（json/csv）
 - **算子源码**：`kernels/`（plugin_a1 = W4A4 生产插件；kernel2 = MLA KV linear；routeB = FP8 稠密 GEMM）
 - **缺陷处置**：`docs/04-issues/`（issue22、环境 stall、AR 调查）
 - **部署手册**：`docs/07-deployment/`（runbook、回滚锚点、服务部署指南）
+- **2026-08-26 生产加固**：`CHANGES-2026-08-26.md`（8192 批次令牌 + RoCE GID 预检 + 崩溃记录 + 四轮拦截修复）；加固脚本见 `scripts/hardening/`，集成启动脚本见 `scripts/server-production/`（旧版保留 `.bak-20260826`）
 
 ## 说明
 
