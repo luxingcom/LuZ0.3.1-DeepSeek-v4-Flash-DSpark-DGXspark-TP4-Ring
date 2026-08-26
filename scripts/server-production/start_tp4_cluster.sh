@@ -43,7 +43,8 @@ fi
 HEAD_HOST="dgxspark01"
 MASTER_ADDR="192.168.5.186"
 MASTER_PORT=25999
-API_PORT=8001
+# CONC(R12): 对外入口 8001 由 concurrency_proxy 占用; vLLM 后端迁移至 8002
+API_PORT=8002
 API_KEY="${VLLM_API_KEY:?VLLM_API_KEY is not set}"
 MAX_WAIT_S=600
 # r12: 门禁语义替换 — TCPSTORE_GATE_WAIT=step 2.5 TCPStore 复核门禁上限;
@@ -142,11 +143,31 @@ for r in 1 2 3; do
 done
 log "[ok] 四机容器已清理"
 
-# ---- 8001 释放验证 (head) ----
+# ---- 8002 释放验证 (head) + 并发代理保障 (CONC R12) ----
+#   语义变更: vLLM 后端迁移至 :8002, 须空闲; 对外入口 :8001 应由 concurrency-proxy 占用。
 if ss -tln 2>/dev/null | grep -q ":$API_PORT"; then
   log "[error] :${API_PORT} 仍被占用, 中止" >&2
   ss -tlnp 2>/dev/null | grep ":$API_PORT" | head -2
   exit 1
+fi
+# 并发代理须在对外入口 :8001 就绪 (systemd 持久化 enable, 开机自启; 未运行则拉起)
+#   自动拉起依赖 sudoers NOPASSWD(/etc/sudoers.d/99-concurrency-proxy); 无权限则降级并告警
+if ! ss -tln 2>/dev/null | grep -q ":8001"; then
+  log "[info] :8001 未被监听 — 启动 concurrency-proxy.service"
+  if ! systemctl is-active concurrency-proxy >/dev/null 2>&1; then
+    sudo -n systemctl start concurrency-proxy 2>/dev/null \
+      || systemctl start concurrency-proxy 2>/dev/null \
+      || log "[warn] 无法自动启动 concurrency-proxy (需 root), 请手动 sudo systemctl start concurrency-proxy" >&2
+  fi
+fi
+if ! ss -tln 2>/dev/null | grep -q ":8001"; then
+  log "[error] :8001 无并发代理监听, 中止 (入口不可用)" >&2
+  exit 1
+fi
+if systemctl is-active concurrency-proxy >/dev/null 2>&1; then
+  log "[ok] concurrency-proxy active (:8001 -> ${VLLM_BACKEND:-http://127.0.0.1:8002})"
+else
+  log "[warn] concurrency-proxy 未以 systemd 运行但 :8001 有监听 (非托管代理), 继续" >&2
 fi
 
 # =============================================================

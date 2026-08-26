@@ -20,6 +20,9 @@
 # R12 KEY_PARAMS: --max-num-seqs 12 | --gpu-memory-utilization 0.78 |
 #                 --max-cudagraph-capture-size 96 (capture-sizes 1..96) |
 #                 PSR: NCCL=8-9 (isolcpus) | EngineCore=15-19 (shim v8)
+# CONC(R12, 2026-08-26): 入口信号量代理 concurrency_proxy.py 占 0.0.0.0:8001
+#                  → 转发 127.0.0.1:8002 (本容器 vLLM 新端口); --max-num-batched-tokens 8192 (全 rank 一致)
+#                  → 在飞≤12 (与 --max-num-seqs 12 对齐, 消除 > shm 环6 结构性不匹配)
 # TP4 环网: 01=rank0(186) 02=rank1(187) 04=rank2(189) 03=rank3(188)
 # 控制面: MASTER_ADDR/VLLM_HOST_IP=192.168.5.186 MASTER_PORT=25999
 # 容器: vllm-tp4-rank0 --restart no
@@ -58,7 +61,8 @@ fi
 IMG="192.168.5.187:5000/anemll/dspark-vllm-gx10:0.2.1-v026.0"
 NAME="vllm-tp4-rank0"
 NEW_SERVED_NAME="deepseek-v4-flash-0731"
-PORT="8001"
+# CONC(R12): 对外入口 8001 已由 concurrency_proxy.py 占用; 本容器 vLLM 监听 8002
+PORT="8002"
 MASTER_ADDR="192.168.5.186"
 MASTER_PORT="25999"
 NODE_RANK=0
@@ -83,7 +87,7 @@ SERVE_CMD="rm -rf /tmp/plugin_a1_install; cp -r /opt/aicad-prod/nvfp4/plugin_a1 
   --moe-backend flashinfer_b12x\
   --distributed-executor-backend mp\
   --distributed-timeout-seconds 300\
-  --port 8001\
+  --port 8002\
   --api-key \"${VLLM_API_KEY:?VLLM_API_KEY is not set}\"\
   --enable-flashinfer-autotune\
   --max-cudagraph-capture-size 96\
@@ -274,6 +278,8 @@ BINDS=(
   # === FI 0.6.16 overlay (fi016 窗口注入; 2026-08-23 03:01 被 w4a4-ext 恢复误覆盖, luz031 补回) ===
   -v /opt/aicad-prod/nvfp4/flashinfer-0.6.16/flashinfer:/usr/local/lib/python3.12/dist-packages/flashinfer:ro
   -v /opt/aicad-prod/overlay-mask/api_utils.py:/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/serve/utils/api_utils.py:ro
+  # === shm_broadcast 环容量 6→24 overlay (CONC 12, 消除 max-num-seqs=12 > 环6 结构性不匹配) ===
+  -v /opt/aicad-prod/overlay-shm/parallel_state.py:/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py:ro
   -v "$HOME/flashinfer-cache:/root/.cache/flashinfer:rw"
 )
 
@@ -284,7 +290,7 @@ docker run -d --name "$NAME" \
   --memory 112g --memory-swap 112g \
   --log-opt max-size=100m --log-opt max-file=3 \
   --shm-size=64gb --ulimit memlock=-1 --ulimit stack=67108864 --ulimit nofile=1048576 \
-  --health-cmd "curl -sf -o /dev/null -m 5 http://127.0.0.1:8001/health || exit 1" \
+  --health-cmd "curl -sf -o /dev/null -m 5 http://127.0.0.1:8002/health || exit 1" \
   --health-interval 30s --health-timeout 10s --health-retries 5 --health-start-period 900s \
   "${BINDS[@]}" \
   -v ~/vllm-logs:/var/log/vllm \

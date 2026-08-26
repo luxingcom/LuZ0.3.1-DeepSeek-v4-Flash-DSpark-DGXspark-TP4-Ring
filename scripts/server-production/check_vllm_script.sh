@@ -1,13 +1,16 @@
 #!/bin/bash
 # =============================================================
 # SCRIPT: check_vllm_script.sh
-# VERSION: v1.5-r11
+# VERSION: v1.5-r12
 # USAGE: bash check_vllm_script.sh <script_path>  (已带 -h/--help + exit 2)
 # ROLE: vLLM 启动参数完整性自检 (四机, 启动脚本前置调用与 CI)
-# HOST: node01~04
-# DOCS: file://<INSTALL_DIR>/docs/scripts/REFERENCE.md
-# DOCS: file://<INSTALL_DIR>/docs/ops/tools-index.md
+# HOST: dgxspark01~04
+# DOCS: file:///opt/aicad-prod/docs/scripts/REFERENCE.md
+# DOCS: file:///opt/aicad-prod/docs/ops/tools-index.md
 # EXITCODES: 0=通过 1=失败 2=用法错误
+# R12 (2026-08-26): B1 对齐 live head/worker - max-num-batched-tokens 4096->8192,
+#                 gpu-memory-utilization 0.82->0.78 (与叶子脚本一致, 门禁放行);
+#                 修正 C 段输出逻辑 (FAIL=1 时误报 '检查完成')
 # CHANGE: 改脚本须 bash -n + .bak-<tag> 留档 + 更新 REFERENCE.md
 # =============================================================
 # check_vllm_script.sh - vLLM 启动脚本自检工具 (2026-08-10 加固)
@@ -22,10 +25,10 @@ set -u
 SCRIPT="${1:-}"
 if [ -z "$SCRIPT" ]; then
   # 2026-08-23 luz031: 无参自动发现本机 start 脚本（此前无参静默 exit 2 曾误报 FAIL）
-  if [ "$(hostname)" = "node01" ]; then
-    _cands="<INSTALL_DIR>/scripts/start_tp4_head.sh <INSTALL_DIR>/scripts/start_tp4_worker.sh"
+  if [ "$(hostname)" = "dgxspark01" ]; then
+    _cands="/opt/aicad-prod/scripts/start_tp4_head.sh /opt/aicad-prod/scripts/start_tp4_worker.sh"
   else
-    _cands="<INSTALL_DIR>/scripts/start_tp4_worker.sh <INSTALL_DIR>/scripts/start_tp4_head.sh"
+    _cands="/opt/aicad-prod/scripts/start_tp4_worker.sh /opt/aicad-prod/scripts/start_tp4_head.sh"
   fi
   for _c in $_cands; do
     [ -f "$_c" ] && SCRIPT="$_c" && break
@@ -79,20 +82,21 @@ if [ "$ORCH" = "1" ]; then
   echo "  ℹ 编排器脚本 ($ORCH_REASON): B1 关键参数由叶子 head/worker 脚本负责, 此处跳过参数完整性 (标注 OK)"
 fi
 
-# B1. 关键参数 (A 组生产配置, 2026-08-12 r11 用户批准: seqs6 + capture 1..64/max64)
+# B1. 关键参数 (2026-08-26 r12 与 live 对齐: bt 8192 + gmu 0.78 + seqs12 + capture 96;
+#     2026-08-12 r11 初版: seqs6 + capture 1..64/max64)
 if [ "$ORCH" = "1" ]; then
   echo "  ✓ 关键参数完整性 (编排器: 由叶子 head/worker 脚本负责, 跳过)"
 else
-for key in "max-model-len 600000" "gpu-memory-utilization 0.82" "max-num-seqs 12" "max-num-batched-tokens 4096" "VLLM_USE_BREAKABLE_CUDAGRAPH=1" "LD_PRELOAD=/opt/libncclpin.so" "max-cudagraph-capture-size 96" "cudagraph-capture-sizes 1 2 4 8 16 24 32 36 40 48 56 64 72 80 88 96"; do
+for key in "max-model-len 600000" "gpu-memory-utilization 0.78" "max-num-seqs 12" "max-num-batched-tokens 8192" "VLLM_USE_BREAKABLE_CUDAGRAPH=1" "LD_PRELOAD=/opt/libncclpin.so" "max-cudagraph-capture-size 96" "cudagraph-capture-sizes 1 2 4 8 16 24 32 36 40 48 56 64 72 80 88 96"; do
   if ! grep -qF "$key" "$SCRIPT"; then
     echo "  ✗ 缺关键参数: $key"; FAIL=1
   fi
 done
 fi
-[ $FAIL -eq 0 ] || echo "  ✓ 关键参数检查完成"
+[ $FAIL -eq 0 ] && echo "  ✓ 关键参数检查完成"
 
 # B2. 依赖文件
-for f in <INSTALL_DIR>/lib/libncclpin.so <INSTALL_DIR>/models/deepseek-v4-flash-0731/config.json; do
+for f in /opt/aicad-prod/lib/libncclpin.so /opt/aicad-prod/models/deepseek-v4-flash-0731/config.json; do
   if [ ! -e "$f" ]; then
     echo "  ✗ 缺依赖: $f"; FAIL=1
   fi
@@ -112,7 +116,7 @@ fi
 # C2. $HOME 引用检查 (脚本使用 $HOME 挂载 => 禁止在 sudo 下运行)
 if grep -q '\$HOME' "$SCRIPT"; then
   if [ "$HOME" = "/root" ]; then
-    echo "  ✗ 当前 HOME=/root (sudo?) 但脚本使用 \$HOME 挂载, 必须 HOME=/home/<USER> 运行"; FAIL=1
+    echo "  ✗ 当前 HOME=/root (sudo?) 但脚本使用 \$HOME 挂载, 必须 HOME=/home/liuxiaoya 运行"; FAIL=1
   else
     echo "  ✓ HOME=$HOME (非 root, \$HOME 挂载安全)"
   fi

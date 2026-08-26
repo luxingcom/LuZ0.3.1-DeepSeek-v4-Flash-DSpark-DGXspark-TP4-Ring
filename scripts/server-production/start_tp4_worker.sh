@@ -20,6 +20,8 @@
 # R12 KEY_PARAMS: --max-num-seqs 12 | --gpu-memory-utilization 0.78 |
 #                 --max-cudagraph-capture-size 96 (capture-sizes 1..96) |
 #                 PSR: NCCL=8-9 (isolcpus) | EngineCore=15-19 (shim v8)
+# CONC(R12, 2026-08-26): --max-num-batched-tokens 8192 (与 head 全 rank 一致, 门禁 B1 对齐);
+#                 worker --port 8001 保留 (MP 模式 worker 不对外服务, 端口仅内部绑定)
 # 容器名自动: vllm-tp4-rank${NODE_RANK} | 模型源: 03/04 本地 .local-backup(临时) / NFS(恢复后)
 # =============================================================
 set -euo pipefail
@@ -337,6 +339,8 @@ BINDS=(
   # === FI 0.6.16 overlay (fi016 窗口注入) ===
   -v /opt/aicad-prod/nvfp4/flashinfer-0.6.16/flashinfer:/usr/local/lib/python3.12/dist-packages/flashinfer:ro
   -v /opt/aicad-prod/overlay-mask/api_utils.py:/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/serve/utils/api_utils.py:ro
+  # === shm_broadcast 环容量 6→24 overlay (CONC 12, 消除 max-num-seqs=12 > 环6 结构性不匹配) ===
+  -v /opt/aicad-prod/overlay-shm/parallel_state.py:/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py:ro
   -v "$HOME/flashinfer-cache:/root/.cache/flashinfer:rw"
 )
 

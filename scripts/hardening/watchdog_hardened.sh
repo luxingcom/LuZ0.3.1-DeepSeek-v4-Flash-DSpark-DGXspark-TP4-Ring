@@ -142,6 +142,27 @@ else
   echo "[watchdog][info] dmesg 不可读, 跳过"
 fi
 
+# --- 4. 入口网关 concurrency-proxy 探活 (仅 head; 自愈 + 告警) ---
+# 2026-08-26 R12 补盲: 01:18 proxy bind 失败 exit1 后无自愈, 8001 空置 4h+ 致网关 502。
+#   sudoers NOPASSWD 已授权 (99-concurrency-proxy); 自愈失败 → FAIL=1 告警。
+if [ "$ROLE" = "head" ]; then
+  if ss -tln 2>/dev/null | grep -q ":8001"; then
+    echo "[watchdog][${PHASE}] ok 网关 8001 监听正常"
+  else
+    echo "[watchdog][${PHASE}] x 网关 8001 未监听 — 尝试拉起 concurrency-proxy.service"
+    sudo -n systemctl start concurrency-proxy.service >/dev/null 2>&1
+    sleep 2
+    if ss -tln 2>/dev/null | grep -q ":8001"; then
+      echo "[watchdog][${PHASE}] ok 网关已恢复 (:8001 监听)"
+    else
+      echo "[watchdog][${PHASE}] x 网关自愈失败 — 请手动: sudo systemctl start concurrency-proxy" >&2
+      FAIL=1
+    fi
+  fi
+else
+  echo "[watchdog][info] 非 head 角色, 跳过网关探活"
+fi
+
 if [ "$FAIL" = "0" ]; then
   echo "[watchdog][${PHASE}] ✅ 健康"
   exit 0
